@@ -1,6 +1,7 @@
 import cv2
 import rawpy
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 #imgName = 'sky5'
@@ -10,83 +11,90 @@ import numpy as np
 #imgName = 'sunRef5'
 #imgName = 'sunRef7'
 #imgName = 'iPad1'
-imgName = 'iPad_ScreenFlash1'
-#imgName = 'benQ1'
+#imgName = 'iPad_ScreenFlash1'
+imgName = 'benQ1'
 
 
-def stretch(img):
-    minVal = np.min(img)
-    maxVal = np.max(img)
+def stretch(img, mask=None):
+    mask = mask if mask is not None else np.ones(img.shape, dtype='bool')
+    minVal = np.min(img[mask])
+    maxVal = np.max(img[mask])
 
-    return (img - minVal) / (maxVal - minVal)
+    spread = maxVal - minVal
+    stretched = (img - minVal) / spread
+    stretched[np.logical_not(mask)] = 0
+    return stretched, spread
+
+def autocrop(img, redMask, greenMask, blueMask):
+    scaled, _ = stretch(img)
+
+    threshold = 0.95
+    brightSubpixelMask = scaled > threshold
+    brightSubpixelMask = brightSubpixelMask.astype('uint8') * 255
+
+    morphologyKernel = np.ones((21, 21), np.uint8)
+    dilated = cv2.dilate(brightSubpixelMask, morphologyKernel, iterations=1)
+
+    contours, heirarchy = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    areas = [cv2.contourArea(contour) for contour in contours]
+    largestContour = np.argmax(areas)
+
+    numbersBB = cv2.boundingRect(contours[largestContour])
+    #spectrumBB = numbersBB + np.array([0, int(1.5 * numbersBB[3]), 0, 0)]) #Just offset the numberline by 2 times its height. Samples roughly the middle of the spectrum area
+    spectrumBB = numbersBB + np.array([0, int(2 * numbersBB[3]), 0, int(-0.5 * numbersBB[3])]) #Just offset the numberline by 2 times its height. Samples roughly the middle of the spectrum area
+
+    return [numbersBB, spectrumBB]
 
 with rawpy.imread('images/{}.DNG'.format(imgName)) as raw:
-    print('Pattern :: \n{}'.format(raw.raw_pattern))
-    print('Num Colors :: \n{}'.format(raw.num_colors))
-    print('Color Mat :: \n{}'.format(raw.color_matrix))
-    print('Color Desc :: \n{}'.format(raw.color_desc))
-    print('Img Colors :: \n{}'.format(raw.raw_colors))
-    print('Img Colors Shape :: \n{}'.format(raw.raw_colors.shape))
-    print('------')
-    
     redMask = raw.raw_colors == 0
     #greenMask = np.logical_or((raw.raw_colors == 1), (raw.raw_colors == 3))
     greenMask = raw.raw_colors == 1
     blueMask = raw.raw_colors == 2
 
-    h, w = raw.raw_image.shape
+    numbersBB, spectrumBB = autocrop(raw.raw_image, redMask, greenMask, blueMask)
 
-    #y = 0.48
-    #y = 0.53
-    y = 0.56
-    numbersY = y - .035
-    x = 0.6
+    numbers = np.copy(raw.raw_image[numbersBB[1]:(numbersBB[1] + numbersBB[3]), numbersBB[0]:(numbersBB[0] + numbersBB[2])])
+    spectrum = np.copy(raw.raw_image[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])])
 
-    #targetHeight = 0.1
-    targetHeight = 0.04
-    targetNumbersHeight = 0.03
-    targetWidth = 0.3
+    redMask = redMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
+    greenMask = greenMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
+    blueMask = blueMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
 
-    numbers_start_height = int(numbersY * h)
-    numbers_end_height = int((numbersY + targetNumbersHeight) * h)
+    numbers, _ = stretch(numbers)
+
+    redImg = np.copy(spectrum)
+    redImg, redRange = stretch(redImg, redMask)
+    print('Red Range :: {}'.format(redRange))
+    redRowMask = np.any(redImg.T, axis=0)
+    redMedians = np.median(redImg.T[:, redRowMask], axis=1)
+    redMedians = redMedians[redMedians > 0]
+
+    greenImg = np.copy(spectrum)
+    greenImg, greenRange = stretch(greenImg, greenMask)
+    print('Green Range :: {}'.format(greenRange))
+    greenRowMask = np.any(greenImg.T, axis=0)
+    greenMedians = np.median(greenImg.T[:, greenRowMask], axis=1)
+    greenMedians = greenMedians[greenMedians > 0]
+
+    blueImg = np.copy(spectrum)
+    blueImg, blueRange = stretch(blueImg, blueMask)
+    print('Blue Range :: {}'.format(blueRange))
+    blueRowMask = np.any(blueImg.T, axis=0)
+    blueMedians = np.median(blueImg.T[:, blueRowMask], axis=1)
+    blueMedians = blueMedians[blueMedians > 0]
 
 
-    start_height = int(y * h)
-    end_height = int((y + targetHeight) * h)
-    start_width = int(x * w)
-    end_width = int((x + targetWidth) * w)
+    fig = plt.figure()
+    ax1 = fig.add_axes([0.1, 0.5, 0.85, 0.5])
+    ax1.plot(np.arange(len(redMedians)), redMedians, 'r-')
+    ax1.plot(np.arange(len(greenMedians)), greenMedians, 'g-')
+    ax1.plot(np.arange(len(blueMedians)), blueMedians, 'b-')
 
-    cropped = np.copy(raw.raw_image[start_height:end_height, start_width:end_width])
+    ax2 = fig.add_axes([0.1, 0, 0.85, 0.5])
+    ax2.imshow(np.vstack([numbers, redImg, greenImg, blueImg]), cmap='gray')#, interpolation='nearest')
 
-    numbersCropped = np.copy(raw.raw_image[numbers_start_height:numbers_end_height, start_width:end_width])
-    numbersCropped = stretch(numbersCropped)
+    fig.show()
 
-    redMask = redMask[start_height:end_height, start_width:end_width]
-    greenMask = greenMask[start_height:end_height, start_width:end_width]
-    blueMask = blueMask[start_height:end_height, start_width:end_width]
-
-    stretched = stretch(cropped)
-
-    redImg = np.copy(stretched)
-    redImg[np.logical_not(redMask)] = 0
-    #redImg = stretch(redImg)
-
-    greenImg = np.copy(stretched)
-    greenImg[np.logical_not(greenMask)] = 0
-    #greenImg = stretch(greenImg)
-
-    blueImg = np.copy(stretched)
-    blueImg[np.logical_not(blueMask)] = 0
-    #blueImg = stretch(blueImg)
-
-    print('Raw Image')
-    print(raw.raw_image.shape)
-
-    #cv2.imshow('Raw', raw.raw_image)
-
-    imgs = np.vstack([numbersCropped, redImg, greenImg, blueImg])
-    #cv2.imshow('Red', redImg)
-    #cv2.imshow('Green', greenImg)
-    #cv2.imshow('Blue', blueImg)
+    imgs = np.vstack([numbers, redImg, greenImg, blueImg])
     cv2.imshow('RGB', imgs)
     cv2.waitKey(0)
