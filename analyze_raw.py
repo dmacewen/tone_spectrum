@@ -5,14 +5,15 @@ import matplotlib.pyplot as plt
 
 
 #imgName = 'sky5'
-#imgName = 'sunRef2'
-#imgName = 'sunRef3'
-#imgName = 'sunRef4'
-#imgName = 'sunRef5'
-#imgName = 'sunRef7'
+#imgName = 'sunRef2' #Possibly Perfect
+imgName = 'sunRef3' #Possibly Perfect
+##imgName = 'sunRef4' #Under Exposed
+##imgName = 'sunRef5' #Under Exposed
+##imgName = 'sunRef6' #Over Exposed
+##imgName = 'sunRef7' #Over Exposed
 #imgName = 'iPad1'
 #imgName = 'iPad_ScreenFlash1'
-imgName = 'benQ1'
+#imgName = 'benQ1'
 
 
 def stretch(img, mask=None):
@@ -41,7 +42,7 @@ def autocrop(img, redMask, greenMask, blueMask):
 
     numbersBB = cv2.boundingRect(contours[largestContour])
     #spectrumBB = numbersBB + np.array([0, int(1.5 * numbersBB[3]), 0, 0)]) #Just offset the numberline by 2 times its height. Samples roughly the middle of the spectrum area
-    spectrumBB = numbersBB + np.array([0, int(2 * numbersBB[3]), 0, int(-0.5 * numbersBB[3])]) #Just offset the numberline by 2 times its height. Samples roughly the middle of the spectrum area
+    spectrumBB = numbersBB + np.array([0, int(1.75 * numbersBB[3]), 0, int(-0.5 * numbersBB[3])]) #Just offset the numberline by 2 times its height. Samples roughly the middle of the spectrum area
 
     return [numbersBB, spectrumBB]
 
