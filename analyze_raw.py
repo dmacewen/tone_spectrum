@@ -9,7 +9,8 @@ import numpy as np
 #imgName = 'sunRef4'
 #imgName = 'sunRef5'
 #imgName = 'sunRef7'
-imgName = 'iPad1'
+#imgName = 'iPad1'
+imgName = 'iPad_ScreenFlash1'
 #imgName = 'benQ1'
 
 
@@ -36,8 +37,8 @@ with rawpy.imread('images/{}.DNG'.format(imgName)) as raw:
     h, w = raw.raw_image.shape
 
     #y = 0.48
-    y = 0.53
-    #y = 0.555
+    #y = 0.53
+    y = 0.56
     numbersY = y - .035
     x = 0.6
 
