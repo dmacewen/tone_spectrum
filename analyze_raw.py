@@ -21,7 +21,8 @@ import matplotlib.pyplot as plt
 sunDimImg = 'sunlightDim'
 sunMediumImg = 'sunlightMedium'
 #sunDimImg = 'sunlightDim'
-benQImg = 'BenQ'
+benQImg = 'BenQ2'
+iPadImg = 'iPad'
 
 
 def stretch(img, mask=None):
@@ -123,7 +124,7 @@ def spectrumCheck(imgFileName, threshold):
 
 #spectrumCheck(sunDimImg, 0.30)
 spectrumCheck(sunMediumImg, 0.50)
-spectrumCheck(benQImg, 0.30)
-#spectrumCheck(iPadImg)
+#spectrumCheck(benQImg, 0.10)
+spectrumCheck(iPadImg, 0.30)
 cv2.imshow('Force Pause', np.ones([100, 100, 1], dtype='uint8'))
 cv2.waitKey(0)
