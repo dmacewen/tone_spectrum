@@ -423,7 +423,6 @@
         L 2182, 620"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
-    -->
     <g id="Africa1">
         <path d="
         M237.588,1155.49
@@ -436,21 +435,24 @@
         style="fill:none;stroke:red;stroke-width:3px;"/>
         <path d="
         M 237, 1155
-        L 357, 1140
-        L 423, 1147
-        L 640, 1024
-        L 741, 1014
-        L 938, 963
-        L 1077, 944
-        L 1462, 907
-        L 1476, 817
-        L 1773, 720
+        L 357, 1142
+        L 423, 1130
+        L 520, 1092
+        L 620, 1043
+        L 741, 1010
+        L 938, 967
+        L 1077, 946
+        L 1290, 920
+        L 1376, 898
+        L 1476, 850
+        L 1559, 800
+        L 1653, 760
         L 1856, 702
         L 2031, 661
-        L 2030, 655"
+        L 2182, 635"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
-    <!--
+    -->
     <g id="Africa2">
         <path d="
         M236.793,1206.48
@@ -480,6 +482,7 @@
         L 2077, 680"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
+    <!--
     <g id="Africa3">
         <path d="
         M237.375,1271.91
