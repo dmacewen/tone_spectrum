@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="100%" height="100%" viewBox="0 0 2224 1668" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
-<!--
     <g id="Europe1">
         <path d="
         M237.355,583.234
@@ -485,7 +484,6 @@
         L 2182, 661"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
-    -->
     <g id="Africa3">
         <path d="
         M237.375,1271.91
@@ -500,26 +498,24 @@
         style="fill:none;stroke:red;stroke-width:3px;"/>
         <path d="
         M 237, 1271
-        L 280, 1245
+        L 280, 1252
         L 337, 1234
-        L 483, 1203
-        L 538, 1174
+        L 483, 1200
+        L 538, 1178
         L 690, 1133
         L 938, 1074
-        L 1082, 1049
-        L 1153, 1048
-        L 1349, 998
-        L 1401, 995
-        L 1530, 917
-        L 1571, 895
+        L 1082, 1051
+        L 1153, 1042
+        L 1349, 1002
+        L 1420, 980
+        L 1530, 920
+        L 1571, 900
         L 1799, 828
         L 1939, 778
         L 2102, 724
-        L 2079, 729"
+        L 2182, 700"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
-    <!--
-    -->
     <g id="Chart">
         <g id="Box" transform="matrix(1,0,0,1.01433,0,-17.8567)">
             <rect x="235.744" y="172.642" width="1947.25" height="1194.6" style="fill:rgb(235,235,235);fill-opacity:0;stroke:black;stroke-width:3.97px;"/>
