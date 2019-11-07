@@ -393,7 +393,6 @@
         L 2182, 521"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
-    -->
     <g id="SouthAsia3">
         <path d="
         M235.744,1166.46
@@ -406,21 +405,25 @@
         style="fill:none;stroke:red;stroke-width:3px;"/>
         <path d="
         M 235, 1166
-        L 339, 1175
-        L 406, 1160
-        L 639, 1036
-        L 740, 1022
-        L 937, 960
-        L 1112, 929
-        L 1484, 886
-        L 1468, 792
-        L 1752, 707
-        L 1811, 692
-        L 1983, 660
-        L 2033, 640"
+        L 290, 1170
+        L 339, 1165
+        L 406, 1149
+        L 560, 1080
+        L 610, 1055
+        L 740, 1018
+        L 937, 964
+        L 1112, 933
+        L 1284, 910
+        L 1400, 875
+        L 1468, 835
+        L 1570, 765
+        L 1752, 709
+        L 1811, 694
+        L 1983, 658
+        L 2182, 620"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
-    <!--
+    -->
     <g id="Africa1">
         <path d="
         M237.588,1155.49
@@ -447,6 +450,7 @@
         L 2030, 655"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
+    <!--
     <g id="Africa2">
         <path d="
         M236.793,1206.48
