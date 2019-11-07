@@ -452,7 +452,6 @@
         L 2182, 635"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
-    -->
     <g id="Africa2">
         <path d="
         M236.793,1206.48
@@ -466,23 +465,27 @@
         style="fill:none;stroke:red;stroke-width:3px;"/>
         <path d="
         M 236, 1206
-        L 265, 1222
-        L 457, 1185
-        L 675, 1085
+        L 270, 1210
+        L 350, 1200
+        L 457, 1172
+        L 650, 1100
         L 936, 1033
-        L 1081, 1009
-        L 1169, 1004
-        L 1366, 954
-        L 1385, 959
-        L 1514, 881
-        L 1541, 831
+        L 1081, 1012
+        L 1169, 1000
+        L 1366, 958
+        L 1400, 948
+        L 1450, 920
+        L 1505, 881
+        L 1578, 831
+        L 1610, 814
         L 1769, 764
-        L 1866, 730
-        L 2013, 699
-        L 2077, 680"
+        L 1866, 734
+        L 2000, 700
+        L 2077, 682
+        L 2182, 661"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
-    <!--
+    -->
     <g id="Africa3">
         <path d="
         M237.375,1271.91
@@ -515,6 +518,7 @@
         L 2079, 729"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
+    <!--
     -->
     <g id="Chart">
         <g id="Box" transform="matrix(1,0,0,1.01433,0,-17.8567)">
