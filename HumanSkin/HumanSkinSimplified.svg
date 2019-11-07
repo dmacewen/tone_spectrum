@@ -186,7 +186,7 @@
     -->
     <g id="Europe1">
         <path d="
-        M 238, 584
+        M 236, 584
         L 311, 622
         L 340, 634
         L 376, 644
@@ -221,12 +221,12 @@
         L 1796, 398
         L 2033, 418
         L 2065, 420
-        L 2184, 426"
+        L 2182, 426"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
     <g id="Europe2">
         <path d="
-        M 238, 655
+        M 236, 655
         L 255, 669
         L 294, 688
         L 352, 707
@@ -262,7 +262,7 @@
         L 1841, 259
         L 2074, 275
         L 2121, 276
-        L 2181, 279"
+        L 2182, 279"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
     <g id="Europe3">
@@ -303,7 +303,7 @@
         L 1756, 442
         L 1950, 455
         L 2005, 457
-        L 2180, 468"
+        L 2182, 468"
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
     <g id="EastAsia1">
@@ -403,7 +403,7 @@
     </g>
     <g id="SouthAsia1">
         <path d="
-        M 238, 914
+        M 236, 914
         L 364, 891
         L 411, 874
         L 485, 820
@@ -459,7 +459,7 @@
     </g>
     <g id="SouthAsia3">
         <path d="
-        M 235, 1166
+        M 236, 1166
         L 290, 1170
         L 339, 1165
         L 406, 1149
@@ -480,7 +480,7 @@
     </g>
     <g id="Africa1">
         <path d="
-        M 237, 1155
+        M 236, 1155
         L 357, 1142
         L 423, 1130
         L 520, 1092
@@ -523,7 +523,7 @@
     </g>
     <g id="Africa3">
         <path d="
-        M 237, 1271
+        M 236, 1271
         L 280, 1252
         L 337, 1234
         L 483, 1200
@@ -543,19 +543,6 @@
         style="fill:none;stroke:black;stroke-width:1px;"/>
     </g>
     <g id="Chart">
-        <g id="Box" transform="matrix(1,0,0,1.01433,0,-17.8567)">
-            <rect x="235.744" y="172.642" width="1947.25" height="1194.6" style="fill:rgb(235,235,235);fill-opacity:0;stroke:black;stroke-width:3.97px;"/>
-        </g>
-        <path d="M211.496,273.324C234.009,273.024 211.742,273.326 232.563,273.49" style="fill:none;stroke:black;stroke-width:4px;"/>
-        <path d="M235.744,491.211C229.815,491.131 216.686,490.735 216.686,490.735" style="fill:none;stroke:black;stroke-width:4px;"/>
-        <path d="M232.563,708.922C227.693,709.044 218.731,708.718 214.334,708.718" style="fill:none;stroke:black;stroke-width:4px;"/>
-        <path d="M235.744,926.806C227.781,927.525 224.318,927.45 219.124,927.32" style="fill:none;stroke:black;stroke-width:4px;"/>
-        <path d="M235.744,1144.23C235.775,1143.89 220.342,1144.41 216.686,1144.41" style="fill:none;stroke:black;stroke-width:4px;"/>
-        <path d="M558.001,1371.25C557.528,1370.87 557.614,1388.47 558.31,1389.16" style="fill:none;stroke:black;stroke-width:4px;"/>
-        <path d="M882.817,1370.08C883.355,1373.98 882.625,1378.47 883.559,1384.2" style="fill:none;stroke:black;stroke-width:4px;"/>
-        <path d="M1206.57,1371.35C1206.47,1374.34 1206.85,1377.6 1206.75,1380.41" style="fill:none;stroke:black;stroke-width:4px;"/>
-        <path d="M1531.54,1368.98C1531.58,1368.92 1531.68,1374.13 1531.68,1375.39" style="fill:none;stroke:black;stroke-width:4px;"/>
-        <path d="M1856.57,1370.08C1856.68,1372.47 1856.51,1376.09 1856.57,1380.41" style="fill:none;stroke:black;stroke-width:4px;"/>
-        <path d="M2181.35,1369.96C2181.93,1372.44 2181.52,1375.05 2181.49,1378.23" style="fill:none;stroke:black;stroke-width:4px;"/>
+        <rect x="236" y="156" width="1947" height="1211" style="fill:rgb(255,255,255);fill-opacity:0;stroke:black;stroke-width:1px;"/>
     </g>
 </svg>
