@@ -563,7 +563,7 @@ sunlightBlue = np.stack([np.arange(len(sunlightBlue)), np.array(sunlightBlue)], 
 #plotWithScale(sunlightRed, sunlightGreen, sunlightBlue, 395, 700)
 
 scaledEyeSensitivity = scalePoints(redEyeCurve, greenEyeCurve, blueEyeCurve, 390, 700, True)
-scaledIpadLightEmission = scalePoints(iPadRed, iPadGreen, iPadBlue, 390, 700, True)
+scaledIpadLightEmission = scalePoints(iPadRed, iPadGreen, iPadBlue, 390, 700, False)
 scaledSunlightEmission = scalePoints(sunlightRed, sunlightGreen, sunlightBlue, 395, 700, True)
 
 scaledEurope1 = scaleReflectanceCurve(europe1, 400, 700, 1211, 0, 0.55)
@@ -583,33 +583,33 @@ scaledAfrica2 = scaleReflectanceCurve(africa2, 400, 700, 1211, 0, 0.55)
 scaledAfrica3 = scaleReflectanceCurve(africa3, 400, 700, 1211, 0, 0.55)
 print('Scaled Europe 1 :: {}'.format(scaledEurope1))
 
-#plt.plot(scaledSunlightEmission[0][:, 0], scaledSunlightEmission[0][:, 1], 'r-')
-#plt.plot(scaledSunlightEmission[1][:, 0], scaledSunlightEmission[1][:, 1], 'g-')
-#plt.plot(scaledSunlightEmission[2][:, 0], scaledSunlightEmission[2][:, 1], 'b-')
+plt.plot(scaledSunlightEmission[0][:, 0], scaledSunlightEmission[0][:, 1], 'r-')
+plt.plot(scaledSunlightEmission[1][:, 0], scaledSunlightEmission[1][:, 1], 'g-')
+plt.plot(scaledSunlightEmission[2][:, 0], scaledSunlightEmission[2][:, 1], 'b-')
 
-plt.plot(scaledIpadLightEmission[0][:, 0], scaledIpadLightEmission[0][:, 1], 'r--')
-plt.plot(scaledIpadLightEmission[1][:, 0], scaledIpadLightEmission[1][:, 1], 'g--')
-plt.plot(scaledIpadLightEmission[2][:, 0], scaledIpadLightEmission[2][:, 1], 'b--')
+#plt.plot(scaledIpadLightEmission[0][:, 0], scaledIpadLightEmission[0][:, 1], 'r--')
+#plt.plot(scaledIpadLightEmission[1][:, 0], scaledIpadLightEmission[1][:, 1], 'g--')
+#plt.plot(scaledIpadLightEmission[2][:, 0], scaledIpadLightEmission[2][:, 1], 'b--')
 
-#plt.plot(scaledEyeSensitivity[0][:, 0], scaledEyeSensitivity[0][:, 1], 'r-')
-#plt.plot(scaledEyeSensitivity[1][:, 0], scaledEyeSensitivity[1][:, 1], 'g-')
-#plt.plot(scaledEyeSensitivity[2][:, 0], scaledEyeSensitivity[2][:, 1], 'b-')
+plt.plot(scaledEyeSensitivity[0][:, 0], scaledEyeSensitivity[0][:, 1], 'r.')
+plt.plot(scaledEyeSensitivity[1][:, 0], scaledEyeSensitivity[1][:, 1], 'g.')
+plt.plot(scaledEyeSensitivity[2][:, 0], scaledEyeSensitivity[2][:, 1], 'b.')
 
-plt.plot(scaledEurope1[:, 0], scaledEurope1[:, 1], 'k-')
-plt.plot(scaledEurope2[:, 0], scaledEurope2[:, 1], 'k-')
-plt.plot(scaledEurope3[:, 0], scaledEurope3[:, 1], 'k-')
-
-plt.plot(scaledEastAsia1[:, 0], scaledEastAsia1[:, 1], 'b-')
-plt.plot(scaledEastAsia2[:, 0], scaledEastAsia2[:, 1], 'b-')
-plt.plot(scaledEastAsia3[:, 0], scaledEastAsia3[:, 1], 'b-')
-
-plt.plot(scaledSouthAsia1[:, 0], scaledSouthAsia1[:, 1], 'g-')
-plt.plot(scaledSouthAsia2[:, 0], scaledSouthAsia2[:, 1], 'g-')
-plt.plot(scaledSouthAsia3[:, 0], scaledSouthAsia3[:, 1], 'g-')
-
-plt.plot(scaledAfrica1[:, 0], scaledAfrica1[:, 1], 'r-')
-plt.plot(scaledAfrica2[:, 0], scaledAfrica2[:, 1], 'r-')
-plt.plot(scaledAfrica3[:, 0], scaledAfrica3[:, 1], 'r-')
+plt.plot(scaledEurope1[:, 0], scaledEurope1[:, 1], 'k--')
+#plt.plot(scaledEurope2[:, 0], scaledEurope2[:, 1], 'k-')
+#plt.plot(scaledEurope3[:, 0], scaledEurope3[:, 1], 'k-')
+#
+plt.plot(scaledEastAsia1[:, 0], scaledEastAsia1[:, 1], 'b--')
+#plt.plot(scaledEastAsia2[:, 0], scaledEastAsia2[:, 1], 'b-')
+#plt.plot(scaledEastAsia3[:, 0], scaledEastAsia3[:, 1], 'b-')
+#
+plt.plot(scaledSouthAsia1[:, 0], scaledSouthAsia1[:, 1], 'g--')
+#plt.plot(scaledSouthAsia2[:, 0], scaledSouthAsia2[:, 1], 'g-')
+#plt.plot(scaledSouthAsia3[:, 0], scaledSouthAsia3[:, 1], 'g-')
+#
+plt.plot(scaledAfrica1[:, 0], scaledAfrica1[:, 1], 'r--')
+#plt.plot(scaledAfrica2[:, 0], scaledAfrica2[:, 1], 'r-')
+#plt.plot(scaledAfrica3[:, 0], scaledAfrica3[:, 1], 'r-')
 plt.show()
 
 print('Scaled :: {}'.format(scaledSunlightEmission))
