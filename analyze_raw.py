@@ -2,6 +2,7 @@ import cv2
 import rawpy
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.interpolate import splev, splrep
 
 
 #skyImg = 'sky5'
@@ -15,7 +16,7 @@ import matplotlib.pyplot as plt
 ##imgName = 'iPad_ScreenFlash1'
 ##imgName = 'benQ1'
 #stoveImg = 'StoveLight'
-#skyImg = 'sky'
+skyImg = 'sky'
 #skyImg = 'purpleDim'
 #skyImg = 'purpleBright'
 sunDimImg = 'sunlightDim' 
@@ -27,6 +28,8 @@ iPadImg = 'iPad' #400nm -> 710nm
 blueEyeCurve = np.array([[0,3],[9,10],[12,18],[24,91],[25,115],[39,181],[42,189],[43,189],[45,180],[52,157],[55,152],[58,131],[61,125],[77,41],[87,20],[92,16],[95,10],[109,2],[114,1],[120,0],[256,0]])
 greenEyeCurve = np.array([[0,0],[15,3],[22,5],[27,7],[48,16],[55,21],[66,41],[76,56],[84,74],[91,108],[98,147],[108,181],[114,188],[116,189],[125,188],[127,186],[128,182],[138,158],[140,157],[157,96],[159,80],[168,50],[173,35],[185,14],[192,7],[210,1],[211,0],[256,0]])
 redEyeCurve = np.array([[0,0],[25,3],[45,8],[58,14],[74,30],[82,45],[87,60],[95,92],[103,130],[109,150],[114,159],[124,177],[128,183],[131,183],[134,184],[139,188],[143,189],[145,188],[148,185],[149,183],[152,182],[157,175],[168,148],[179,110],[192,63],[201,35],[205,25],[213,15],[222,7],[230,3],[240,0], [256,0]])
+
+sunlightSpectrum = np.array([[0, 0], [55, 0], [112, 3], [167, 12], [222, 14], [279, 21], [334, 51], [390, 130], [446, 271], [501, 441], [557, 543], [613, 581], [668, 617], [724, 640], [780, 655], [835, 774], [891, 993], [947, 1176], [1003, 1295], [1058, 1394], [1113, 1501], [1170, 1573], [1225, 1594], [1280, 1574], [1337, 1513], [1392, 1459], [1448, 1501], [1504, 1609], [1559, 1722], [1615, 1857], [1671, 1991], [1727, 2107], [1782, 2194], [1838, 2259], [1894, 2320], [1949, 2356], [2006, 2338], [2061, 2305], [2116, 2318], [2172, 2346], [2228, 2365], [2283, 2356], [2339, 2295], [2395, 2293], [2450, 2383], [2506, 2461], [2562, 2472], [2618, 2474], [2673, 2503], [2729, 2513], [2785, 2503], [2840, 2457], [2897, 2420], [2952, 2460], [3007, 2515], [3064, 2566], [3119, 2594], [3174, 2586], [3230, 2555], [3286, 2553], [3342, 2591], [3397, 2603], [3453, 2585], [3509, 2572], [3564, 2600], [3620, 2646], [3676, 2641], [3731, 2614], [3788, 2634], [3843, 2672], [3898, 2689], [3955, 2700], [4010, 2675], [4065, 2609], [4122, 2591], [4177, 2631], [4233, 2648], [4288, 2666], [4344, 2653], [4400, 2606], [4455, 2569], [4511, 2582], [4567, 2616], [4622, 2606], [4679, 2560], [4734, 2544], [4789, 2574], [4846, 2619], [4901, 2627], [4956, 2612], [5013, 2599], [5068, 2601], [5124, 2590], [5180, 2559], [5235, 2577], [5291, 2632], [5346, 2676], [5402, 2702], [5458, 2709], [5513, 2685], [5570, 2637], [5625, 2555], [5680, 2455], [5737, 2395], [5792, 2428], [5847, 2450], [5904, 2425], [5959, 2415], [6015, 2470], [6071, 2530], [6126, 2520], [6182, 2402], [6238, 2238], [6293, 2197], [6349, 2258], [6404, 2288], [6461, 2257], [6516, 2164], [6572, 1902]])
 
 europe1 = np.array([
      [0, 428],
@@ -432,6 +435,18 @@ def extractSpectrums(imgFileName, threshold):
     blueImg, blueMedians = extractSpectrum(stretched, blueMask, False)
     #print('Blue Magnitude :: {}'.format(blueMagnitude))
 
+    lenRed = len(redMedians)
+    lenGreen = len(greenMedians)
+    lenBlue = len(blueMedians)
+
+    offByOneCheck = min([lenRed, lenGreen, lenBlue])
+    if ((lenRed - offByOneCheck) > 1) or ((lenGreen - offByOneCheck) > 1) or ((lenBlue - offByOneCheck) > 1):
+        raise ValueError('Number of pixels offset > 1')
+
+    redMedians = redMedians[:offByOneCheck]
+    greenMedians = greenMedians[:offByOneCheck]
+    blueMedians = blueMedians[:offByOneCheck]
+
     return [numbers, [redImg, redMedians], [greenImg, greenMedians], [blueImg, blueMedians]]
 
 def spectrumCheck(imgFileName, threshold):
@@ -474,7 +489,7 @@ def scalePoints(red, green, blue, startWavelength, endWavelength, scaleIndepende
     scaledBlue[:, 0] = startWavelength + (scaledBlue[:, 0] * wavelengthRange)
     quantizedBlue = quantizeSpectrum(scaledBlue)
 
-    return [quantizedRed, quantizedGreen, quantizedBlue]
+    return np.array([quantizedRed, quantizedGreen, quantizedBlue])
 
 #units in terms of 0 to 1... cuz it fits this use case
 def scaleReflectanceCurve(reflectance, startWavelength, endWavelength, heightInPixels, startYUnit, endYUnit):
@@ -490,6 +505,22 @@ def scaleReflectanceCurve(reflectance, startWavelength, endWavelength, heightInP
     scaled[:, 1] = (reflectance[:, 1] / heightInPixels) * (endYUnit - startYUnit)
     scaled[:, 0] = startWavelength + (scaled[:, 0] * wavelengthRange)
     scaled[:, 1] = endYUnit - scaled[:, 1]
+    quantized = quantizeSpectrum(scaled)
+
+    return quantized
+
+def scaleEmissionCurve(emission, startWavelength, endWavelength):
+    wavelengthRange = endWavelength - startWavelength
+
+
+    emission[:, 0] -= min(emission[:, 0])
+
+    maxEmission = np.max(emission, axis=0)
+
+    scaled = emission / maxEmission
+    #scaled[:, 1] = (emission[:, 1] / heightInPixels) * (endYUnit - startYUnit)
+    scaled[:, 0] = startWavelength + (scaled[:, 0] * wavelengthRange)
+    #scaled[:, 1] = endYUnit - scaled[:, 1]
     quantized = quantizeSpectrum(scaled)
 
     return quantized
@@ -516,11 +547,26 @@ def quantizeSpectrum(points):
         points.append(np.stack([xValues, yValues], axis=1))
 
     points = np.concatenate(points, axis=0)
+
     return points
 
 def combineRGBtoFullSpectrum(red, green, blue):
-    combined = red
+    combined = np.copy(red)
+    combined[:, 1] = np.sum([red[:, 1], green[:, 1], blue[:, 1]], axis=0)
 
+    maxValue = max(combined[:, 1])
+
+    combined[:, 1] /= maxValue
+
+    return combined
+
+def cropSpectrum(spectrum, start, end):
+    startIndex = np.argmax(spectrum[:, 0] == start)
+    endIndex = np.argmax(spectrum[:, 0] == end)
+    return spectrum[startIndex:endIndex, :]
+
+def getCalibrationArray(spectrum, target):
+    return target[:, 1] / spectrum[:, 1]
 
 def plotWithScale(red, green, blue, startWavelength, endWavelength):
 
@@ -541,7 +587,8 @@ iPadGreen = np.stack([np.arange(len(iPadGreen)), np.array(iPadGreen)], axis=1)
 iPadBlue = iPad[3][1]
 iPadBlue = np.stack([np.arange(len(iPadBlue)), np.array(iPadBlue)], axis=1)
 
-sunlight = extractSpectrums(sunMediumImg, 0.50)
+#sunlight = extractSpectrums(sunMediumImg, 0.50)
+sunlight = extractSpectrums(sunDimImg, 0.08)
 sunlightRed = sunlight[1][1]
 sunlightRed = np.stack([np.arange(len(sunlightRed)), np.array(sunlightRed)], axis=1)
 
@@ -550,6 +597,18 @@ sunlightGreen = np.stack([np.arange(len(sunlightGreen)), np.array(sunlightGreen)
 
 sunlightBlue = sunlight[3][1]
 sunlightBlue = np.stack([np.arange(len(sunlightBlue)), np.array(sunlightBlue)], axis=1)
+
+sky = extractSpectrums(skyImg, 0.50)
+skyRed = sky[1][1]
+skyRed = np.stack([np.arange(len(skyRed)), np.array(skyRed)], axis=1)
+
+skyGreen = sky[2][1]
+skyGreen = np.stack([np.arange(len(skyGreen)), np.array(skyGreen)], axis=1)
+
+skyBlue = sky[3][1]
+skyBlue = np.stack([np.arange(len(skyBlue)), np.array(skyBlue)], axis=1)
+
+scaledSunlight = scaleEmissionCurve(sunlightSpectrum, 350, 745)
 
 #quantizeSpectrum(redEyeCurve)
 
@@ -563,8 +622,10 @@ sunlightBlue = np.stack([np.arange(len(sunlightBlue)), np.array(sunlightBlue)], 
 #plotWithScale(sunlightRed, sunlightGreen, sunlightBlue, 395, 700)
 
 scaledEyeSensitivity = scalePoints(redEyeCurve, greenEyeCurve, blueEyeCurve, 390, 700, True)
-scaledIpadLightEmission = scalePoints(iPadRed, iPadGreen, iPadBlue, 390, 700, False)
-scaledSunlightEmission = scalePoints(sunlightRed, sunlightGreen, sunlightBlue, 395, 700, True)
+scaledIpadLightEmission = scalePoints(iPadRed, iPadGreen, iPadBlue, 385, 725, False)
+#scaledSunlightEmission = scalePoints(sunlightRed, sunlightGreen, sunlightBlue, 395, 700, False)
+scaledSunlightEmission = scalePoints(sunlightRed, sunlightGreen, sunlightBlue, 385, 725, False)
+scaledSkyLightEmission = scalePoints(skyRed, skyGreen, skyBlue, 385, 725, False)
 
 scaledEurope1 = scaleReflectanceCurve(europe1, 400, 700, 1211, 0, 0.55)
 scaledEurope2 = scaleReflectanceCurve(europe2, 400, 700, 1211, 0, 0.55)
@@ -581,19 +642,19 @@ scaledSouthAsia3 = scaleReflectanceCurve(southAsia3, 400, 700, 1211, 0, 0.55)
 scaledAfrica1 = scaleReflectanceCurve(africa1, 400, 700, 1211, 0, 0.55)
 scaledAfrica2 = scaleReflectanceCurve(africa2, 400, 700, 1211, 0, 0.55)
 scaledAfrica3 = scaleReflectanceCurve(africa3, 400, 700, 1211, 0, 0.55)
-print('Scaled Europe 1 :: {}'.format(scaledEurope1))
+#print('Scaled Europe 1 :: {}'.format(scaledEurope1))
 
-plt.plot(scaledSunlightEmission[0][:, 0], scaledSunlightEmission[0][:, 1], 'r-')
-plt.plot(scaledSunlightEmission[1][:, 0], scaledSunlightEmission[1][:, 1], 'g-')
-plt.plot(scaledSunlightEmission[2][:, 0], scaledSunlightEmission[2][:, 1], 'b-')
-
+#plt.plot(scaledSunlightEmission[0, :, 0], scaledSunlightEmission[0, :, 1], 'r-')
+#plt.plot(scaledSunlightEmission[1, :, 0], scaledSunlightEmission[1, :, 1], 'g-')
+#plt.plot(scaledSunlightEmission[2, :, 0], scaledSunlightEmission[2, :, 1], 'b-')
+#
 #plt.plot(scaledIpadLightEmission[0][:, 0], scaledIpadLightEmission[0][:, 1], 'r--')
 #plt.plot(scaledIpadLightEmission[1][:, 0], scaledIpadLightEmission[1][:, 1], 'g--')
 #plt.plot(scaledIpadLightEmission[2][:, 0], scaledIpadLightEmission[2][:, 1], 'b--')
 
-plt.plot(scaledEyeSensitivity[0][:, 0], scaledEyeSensitivity[0][:, 1], 'r.')
-plt.plot(scaledEyeSensitivity[1][:, 0], scaledEyeSensitivity[1][:, 1], 'g.')
-plt.plot(scaledEyeSensitivity[2][:, 0], scaledEyeSensitivity[2][:, 1], 'b.')
+#plt.plot(scaledEyeSensitivity[0][:, 0], scaledEyeSensitivity[0][:, 1], 'r.')
+#plt.plot(scaledEyeSensitivity[1][:, 0], scaledEyeSensitivity[1][:, 1], 'g.')
+#plt.plot(scaledEyeSensitivity[2][:, 0], scaledEyeSensitivity[2][:, 1], 'b.')
 
 plt.plot(scaledEurope1[:, 0], scaledEurope1[:, 1], 'k--')
 #plt.plot(scaledEurope2[:, 0], scaledEurope2[:, 1], 'k-')
@@ -610,12 +671,33 @@ plt.plot(scaledSouthAsia1[:, 0], scaledSouthAsia1[:, 1], 'g--')
 plt.plot(scaledAfrica1[:, 0], scaledAfrica1[:, 1], 'r--')
 #plt.plot(scaledAfrica2[:, 0], scaledAfrica2[:, 1], 'r-')
 #plt.plot(scaledAfrica3[:, 0], scaledAfrica3[:, 1], 'r-')
+
+iphoneWavelengthSensitivity = combineRGBtoFullSpectrum(*scaledSunlightEmission)
+iphoneWavelengthSensitivity = cropSpectrum(iphoneWavelengthSensitivity, 420, 650)
+#plt.plot(iphoneWavelengthSensitivity[:, 0], iphoneWavelengthSensitivity[:, 1], 'k-')
+
+scaledSunlightCroppped = cropSpectrum(scaledSunlight, 420, 650)
+#plt.plot(scaledSunlightCroppped[:, 0], scaledSunlightCroppped[:, 1], 'y-')
+
+calibrationArray = getCalibrationArray(iphoneWavelengthSensitivity, scaledSunlightCroppped)
+
+ipadWavelengthEmission = combineRGBtoFullSpectrum(*scaledIpadLightEmission)
+ipadWavelengthEmission = cropSpectrum(ipadWavelengthEmission, 420, 650)
+plt.plot(ipadWavelengthEmission[:, 0], ipadWavelengthEmission[:, 1], 'b-')
+
+#skyWavelengthEmission = combineRGBtoFullSpectrum(*scaledSkyLightEmission)
+#skyWavelengthEmission = cropSpectrum(skyWavelengthEmission, 420, 650)
+#plt.plot(skyWavelengthEmission[:, 0], skyWavelengthEmission[:, 1], 'r-')
+
+plt.plot(ipadWavelengthEmission[:, 0], ipadWavelengthEmission[:, 1] * calibrationArray, 'b--')
+#plt.plot(skyWavelengthEmission[:, 0], skyWavelengthEmission[:, 1] * calibrationArray, 'r--')
+
 plt.show()
 
 print('Scaled :: {}'.format(scaledSunlightEmission))
 
-
-#spectrumCheck(sunDimImg, 0.30)
+#spectrumCheck(sunDimImg, 0.08)
+spectrumCheck(skyImg, 0.5)
 #spectrumCheck(sunMediumImg, 0.50)
 #spectrumCheck(benQImg, 0.10)
 #spectrumCheck(iPadImg, 0.30)
