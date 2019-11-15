@@ -693,6 +693,26 @@ benQGreen = np.stack([np.arange(len(benQGreen)), np.array(benQGreen)], axis=1)
 benQBlue = benQ[3][1]
 benQBlue = np.stack([np.arange(len(benQBlue)), np.array(benQBlue)], axis=1)
 
+led = extractSpectrums(ledImg, 0.08, cropLED)
+ledRed = led[1][1]
+ledRed = np.stack([np.arange(len(ledRed)), np.array(ledRed)], axis=1)
+
+ledGreen = led[2][1]
+ledGreen = np.stack([np.arange(len(ledGreen)), np.array(ledGreen)], axis=1)
+
+ledBlue = led[3][1]
+ledBlue = np.stack([np.arange(len(ledBlue)), np.array(ledBlue)], axis=1)
+
+incA = extractSpectrums(incadecentAImg, 0.08, cropIncandecentA)
+incARed = incA[1][1]
+incARed = np.stack([np.arange(len(incARed)), np.array(incARed)], axis=1)
+
+incAGreen = incA[2][1]
+incAGreen = np.stack([np.arange(len(incAGreen)), np.array(incAGreen)], axis=1)
+
+incABlue = incA[3][1]
+incABlue = np.stack([np.arange(len(incABlue)), np.array(incABlue)], axis=1)
+
 scaledSunlight = scaleEmissionCurve(sunlightSpectrum, 350, 745)
 
 #quantizeSpectrum(redEyeCurve)
@@ -708,6 +728,9 @@ scaledSunlight = scaleEmissionCurve(sunlightSpectrum, 350, 745)
 
 scaledEyeSensitivity = scalePoints(redEyeCurve, greenEyeCurve, blueEyeCurve, 390, 700, True)
 scaledIpadLightEmission = scalePoints(iPadRed, iPadGreen, iPadBlue, 385, 725, False)
+scaledBenQLightEmission = scalePoints(benQRed, benQGreen, benQBlue, 385, 725, False)
+scaledLEDLightEmission = scalePoints(ledRed, ledGreen, ledBlue, 385, 725, False)
+scaledIncALightEmission = scalePoints(incARed, incAGreen, incABlue, 385, 725, False)
 #scaledSunlightEmission = scalePoints(sunlightRed, sunlightGreen, sunlightBlue, 395, 700, False)
 scaledSunlightEmission = scalePoints(sunlightRed, sunlightGreen, sunlightBlue, 385, 725, False)
 scaledSkyLightEmission = scalePoints(skyRed, skyGreen, skyBlue, 385, 725, False)
@@ -741,19 +764,19 @@ scaledAfrica3 = scaleReflectanceCurve(africa3, 400, 700, 1211, 0, 0.55)
 #plt.plot(scaledEyeSensitivity[1][:, 0], scaledEyeSensitivity[1][:, 1], 'g.')
 #plt.plot(scaledEyeSensitivity[2][:, 0], scaledEyeSensitivity[2][:, 1], 'b.')
 
-plt.plot(scaledEurope1[:, 0], scaledEurope1[:, 1], 'k--')
+#plt.plot(scaledEurope1[:, 0], scaledEurope1[:, 1], 'k--')
 #plt.plot(scaledEurope2[:, 0], scaledEurope2[:, 1], 'k-')
 #plt.plot(scaledEurope3[:, 0], scaledEurope3[:, 1], 'k-')
 #
-plt.plot(scaledEastAsia1[:, 0], scaledEastAsia1[:, 1], 'b--')
+#plt.plot(scaledEastAsia1[:, 0], scaledEastAsia1[:, 1], 'b--')
 #plt.plot(scaledEastAsia2[:, 0], scaledEastAsia2[:, 1], 'b-')
 #plt.plot(scaledEastAsia3[:, 0], scaledEastAsia3[:, 1], 'b-')
 #
-plt.plot(scaledSouthAsia1[:, 0], scaledSouthAsia1[:, 1], 'g--')
+#plt.plot(scaledSouthAsia1[:, 0], scaledSouthAsia1[:, 1], 'g--')
 #plt.plot(scaledSouthAsia2[:, 0], scaledSouthAsia2[:, 1], 'g-')
 #plt.plot(scaledSouthAsia3[:, 0], scaledSouthAsia3[:, 1], 'g-')
 #
-plt.plot(scaledAfrica1[:, 0], scaledAfrica1[:, 1], 'r--')
+#plt.plot(scaledAfrica1[:, 0], scaledAfrica1[:, 1], 'r--')
 #plt.plot(scaledAfrica2[:, 0], scaledAfrica2[:, 1], 'r-')
 #plt.plot(scaledAfrica3[:, 0], scaledAfrica3[:, 1], 'r-')
 
@@ -774,12 +797,22 @@ ipadWavelengthEmission = cropSpectrum(ipadWavelengthEmission, 420, 650)
 #skyWavelengthEmission = cropSpectrum(skyWavelengthEmission, 420, 650)
 #plt.plot(skyWavelengthEmission[:, 0], skyWavelengthEmission[:, 1], 'r-')
 
-benqWavelengthEmission = combineRGBtoFullSpectrum(*scaledIpadLightEmission)
-benqWavelengthEmission = cropSpectrum(benqWavelengthEmission, 420, 650)
-plt.plot(benqWavelengthEmission[:, 0], benqWavelengthEmission[:, 1], 'b-')
+#benqWavelengthEmission = combineRGBtoFullSpectrum(*scaledBenQLightEmission)
+#benqWavelengthEmission = cropSpectrum(benqWavelengthEmission, 420, 650)
+#plt.plot(benqWavelengthEmission[:, 0], benqWavelengthEmission[:, 1], 'b-')
+
+ledWavelengthEmission = combineRGBtoFullSpectrum(*scaledLEDLightEmission)
+ledWavelengthEmission = cropSpectrum(ledWavelengthEmission, 420, 650)
+plt.plot(ledWavelengthEmission[:, 0], ledWavelengthEmission[:, 1], 'r-')
+
+incAWavelengthEmission = combineRGBtoFullSpectrum(*scaledIncALightEmission)
+incAWavelengthEmission = cropSpectrum(incAWavelengthEmission, 420, 650)
+plt.plot(incAWavelengthEmission[:, 0], incAWavelengthEmission[:, 1], 'g-')
 
 #plt.plot(ipadWavelengthEmission[:, 0], ipadWavelengthEmission[:, 1] * calibrationArray, 'b--')
-plt.plot(benqWavelengthEmission[:, 0], benqWavelengthEmission[:, 1] * calibrationArray, 'b--')
+#plt.plot(benqWavelengthEmission[:, 0], benqWavelengthEmission[:, 1] *calibrationArray, 'b--')
+plt.plot(ledWavelengthEmission[:, 0], ledWavelengthEmission[:, 1] *calibrationArray, 'r--')
+plt.plot(incAWavelengthEmission[:, 0], incAWavelengthEmission[:, 1] *calibrationArray, 'g--')
 #plt.plot(skyWavelengthEmission[:, 0], skyWavelengthEmission[:, 1] * calibrationArray, 'r--')
 
 plt.show()
@@ -791,7 +824,7 @@ print('Scaled :: {}'.format(scaledSunlightEmission))
 #spectrumCheck(sunMediumImg, 0.50)
 #spectrumCheck(benQImg, 0.10)
 #spectrumCheck(iPadImg, 0.30)
-spectrumCheck(incadecentAImg, 0.01)
+#spectrumCheck(incadecentAImg, 0.01)
 #spectrumCheck(incadecentBImg, 0.10)
 #spectrumCheck(ledImg, 0.10)
 cv2.imshow('Force Pause', np.ones([100, 100, 1], dtype='uint8'))
