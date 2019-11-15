@@ -1,8 +1,10 @@
 import cv2
+import random
 import rawpy
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import splev, splrep
+import math
 
 
 #skyImg = 'sky5'
@@ -24,6 +26,11 @@ sunMediumImg = 'sunlightMedium'#395nm -> 700nm
 #sunDimImg = 'sunlightDim'
 benQImg = 'BenQ2'
 iPadImg = 'iPad' #400nm -> 710nm
+
+incadecentAImg = 'IncadecentA'
+incadecentBImg = 'IncadecentB'
+incadecentBBrightImg = 'IncadecentB_bright'
+ledImg = 'LED' 
 
 blueEyeCurve = np.array([[0,3],[9,10],[12,18],[24,91],[25,115],[39,181],[42,189],[43,189],[45,180],[52,157],[55,152],[58,131],[61,125],[77,41],[87,20],[92,16],[95,10],[109,2],[114,1],[120,0],[256,0]])
 greenEyeCurve = np.array([[0,0],[15,3],[22,5],[27,7],[48,16],[55,21],[66,41],[76,56],[84,74],[91,108],[98,147],[108,181],[114,188],[116,189],[125,188],[127,186],[128,182],[138,158],[140,157],[157,96],[159,80],[168,50],[173,35],[185,14],[192,7],[210,1],[211,0],[256,0]])
@@ -368,11 +375,6 @@ def stretch(img, mask=None):
 def autocrop(img, threshold, redMask, greenMask, blueMask):
     scaled = stretch(img)
 
-    #med = np.median(scaled[scaled > (10/255)])
-    #print('Med :: {}'.format(med))
-
-    #threshold = 0.30
-    #threshold = 0.50
     brightSubpixelMask = scaled > threshold
     brightSubpixelMask = brightSubpixelMask.astype('uint8') * 255
 
@@ -400,23 +402,85 @@ def extractSpectrum(spectrum, mask, stretch=True):
     medians = medians[medians > 0]
     return [img, medians]
 
-def extractSpectrums(imgFileName, threshold):
+
+def amplify(img):
+    std = np.std(img)
+    median = np.median(img)
+    floor = median + (0.5 * std)
+    img[img > floor] = 1
+    return img
+
+#Crop is [[Y, X], [Height, Width], HeightRatio]
+def extractSpectrums(imgFileName, threshold, crop=None):
     with rawpy.imread('imagesRed/{}.DNG'.format(imgFileName)) as raw:
-        redMask = raw.raw_colors == 0
-        #greenMask = np.logical_or((raw.raw_colors == 1), (raw.raw_colors == 3))
-        greenMask = raw.raw_colors == 1
-        blueMask = raw.raw_colors == 2
+        imgDim = raw.raw_image.shape
 
-        numbersBB, spectrumBB = autocrop(raw.raw_image, threshold, redMask, greenMask, blueMask)
+        img = raw.raw_image
+        colors = raw.raw_colors
 
-        numbers = np.copy(raw.raw_image[numbersBB[1]:(numbersBB[1] + numbersBB[3]), numbersBB[0]:(numbersBB[0] + numbersBB[2])])
-        spectrum = np.copy(raw.raw_image[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])])
+    
+    redMask = colors == 0
+    #greenMask = np.logical_or((raw.raw_colors == 1), (raw.raw_colors == 3))
+    greenMask = colors == 1
+    blueMask = colors == 2
 
-    numbersRedMask = redMask[numbersBB[1]:(numbersBB[1] + numbersBB[3]), numbersBB[0]:(numbersBB[0] + numbersBB[2])]
+    if crop is None:
+        numbersBB, spectrumBB = autocrop(img, threshold, redMask, greenMask, blueMask)
 
-    redMask = redMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
-    greenMask = greenMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
-    blueMask = blueMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
+        numbers = np.copy(img[numbersBB[1]:(numbersBB[1] + numbersBB[3]), numbersBB[0]:(numbersBB[0] + numbersBB[2])])
+        spectrum = np.copy(img[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])])
+
+        numbersRedMask = redMask[numbersBB[1]:(numbersBB[1] + numbersBB[3]), numbersBB[0]:(numbersBB[0] + numbersBB[2])]
+
+        redMask = redMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
+        greenMask = greenMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
+        blueMask = blueMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
+
+    else:
+
+        print('crop :: {}'.format(crop))
+        print('dim :: {}'.format(imgDim))
+        height, width = imgDim
+
+        numbersBB = np.round(np.array(crop[0:2]) * np.array([height, width])).astype('int32')
+        print('Numbers BB :: {}'.format(numbersBB))
+
+        spectrumY = np.round(numbersBB[0, 0] + numbersBB[1, 0])
+        print('Spectrum Y :: {}'.format(spectrumY))
+
+        spectrumHeight = np.round(numbersBB[1, 0] * crop[2])
+        print('Spectrum Height :: {}'.format(spectrumHeight))
+
+        spectrumBB = np.array([[spectrumY, numbersBB[0, 1]], [spectrumHeight, numbersBB[1][1]]]).astype('int32')
+        print('Spectrum BB :: {}'.format(spectrumBB))
+
+        numbersBB = numbersBB.flatten()
+        spectrumBB = spectrumBB.flatten()
+
+        numbers = np.copy(img[numbersBB[0]:(numbersBB[0] + numbersBB[2]), numbersBB[1]:(numbersBB[1] + numbersBB[3])])
+        spectrum = np.copy(img[spectrumBB[0]:(spectrumBB[0] + spectrumBB[2]), spectrumBB[1]:(spectrumBB[1] + spectrumBB[3])])
+
+        numbersRedMask = redMask[numbersBB[0]:(numbersBB[0] + numbersBB[2]), numbersBB[1]:(numbersBB[1] + numbersBB[3])]
+
+        redMask = redMask[spectrumBB[0]:(spectrumBB[0] + spectrumBB[2]), spectrumBB[1]:(spectrumBB[1] + spectrumBB[3])]
+        greenMask = greenMask[spectrumBB[0]:(spectrumBB[0] + spectrumBB[2]), spectrumBB[1]:(spectrumBB[1] + spectrumBB[3])]
+        blueMask = blueMask[spectrumBB[0]:(spectrumBB[0] + spectrumBB[2]), spectrumBB[1]:(spectrumBB[1] + spectrumBB[3])]
+
+
+
+    #numbersBB, spectrumBB = autocrop(img, threshold, redMask, greenMask, blueMask)
+    print('Numbers Size :: {}'.format(numbersBB))
+    print('Specturm Size :: {}'.format(spectrumBB))
+
+    #numbers = amplify(stretch(numbers))
+    numbers = stretch(numbers)
+    spectrum = stretch(spectrum)
+    #divide = np.ones([1, numbers.shape[1]])
+    #stacked = np.vstack([numbers, divide, spectrum])
+
+    #cv2.imshow('check :: {}'.format(random.random()), stretch(stacked))
+    #cv2.waitKey(0)
+
 
     numbers = stretch(numbers, numbersRedMask)
 
@@ -449,8 +513,8 @@ def extractSpectrums(imgFileName, threshold):
 
     return [numbers, [redImg, redMedians], [greenImg, greenMedians], [blueImg, blueMedians]]
 
-def spectrumCheck(imgFileName, threshold):
-    numbers, red, green, blue = extractSpectrums(imgFileName, threshold)
+def spectrumCheck(imgFileName, threshold, crop=None):
+    numbers, red, green, blue = extractSpectrums(imgFileName, threshold, crop)
 
     fig = plt.figure()
     ax1 = fig.add_axes([0.1, 0.5, 0.85, 0.5])
@@ -577,6 +641,16 @@ def plotWithScale(red, green, blue, startWavelength, endWavelength):
     plt.plot(scaledRed[:, 0], scaledRed[:, 1], 'r-')
     plt.show()
 
+cropLED = [[0.470, 0.641], [0.025, 0.16], 1]
+cropIncandecentA = [[0.477, 0.649], [0.025, 0.16], 1]
+#crops = [[0.6, 0.6], [0.2, 0.05], 1]
+#spectrumCheck(incadecentAImg, 0.08, cropIncandecentA)
+#spectrumCheck(ledImg, 0.08, cropLED)
+#spectrumCheck(iPadImg, 0.30)
+#spectrumCheck(benQImg, 0.10)
+#cv2.imshow('Force Pause', np.ones([100, 100, 1], dtype='uint8'))
+#cv2.waitKey(0)
+
 iPad = extractSpectrums(iPadImg, 0.30)
 iPadRed = iPad[1][1]
 iPadRed = np.stack([np.arange(len(iPadRed)), np.array(iPadRed)], axis=1)
@@ -607,6 +681,17 @@ skyGreen = np.stack([np.arange(len(skyGreen)), np.array(skyGreen)], axis=1)
 
 skyBlue = sky[3][1]
 skyBlue = np.stack([np.arange(len(skyBlue)), np.array(skyBlue)], axis=1)
+
+
+benQ = extractSpectrums(benQImg, 0.10)
+benQRed = benQ[1][1]
+benQRed = np.stack([np.arange(len(benQRed)), np.array(benQRed)], axis=1)
+
+benQGreen = benQ[2][1]
+benQGreen = np.stack([np.arange(len(benQGreen)), np.array(benQGreen)], axis=1)
+
+benQBlue = benQ[3][1]
+benQBlue = np.stack([np.arange(len(benQBlue)), np.array(benQBlue)], axis=1)
 
 scaledSunlight = scaleEmissionCurve(sunlightSpectrum, 350, 745)
 
@@ -683,13 +768,18 @@ calibrationArray = getCalibrationArray(iphoneWavelengthSensitivity, scaledSunlig
 
 ipadWavelengthEmission = combineRGBtoFullSpectrum(*scaledIpadLightEmission)
 ipadWavelengthEmission = cropSpectrum(ipadWavelengthEmission, 420, 650)
-plt.plot(ipadWavelengthEmission[:, 0], ipadWavelengthEmission[:, 1], 'b-')
+#plt.plot(ipadWavelengthEmission[:, 0], ipadWavelengthEmission[:, 1], 'b-')
 
 #skyWavelengthEmission = combineRGBtoFullSpectrum(*scaledSkyLightEmission)
 #skyWavelengthEmission = cropSpectrum(skyWavelengthEmission, 420, 650)
 #plt.plot(skyWavelengthEmission[:, 0], skyWavelengthEmission[:, 1], 'r-')
 
-plt.plot(ipadWavelengthEmission[:, 0], ipadWavelengthEmission[:, 1] * calibrationArray, 'b--')
+benqWavelengthEmission = combineRGBtoFullSpectrum(*scaledIpadLightEmission)
+benqWavelengthEmission = cropSpectrum(benqWavelengthEmission, 420, 650)
+plt.plot(benqWavelengthEmission[:, 0], benqWavelengthEmission[:, 1], 'b-')
+
+#plt.plot(ipadWavelengthEmission[:, 0], ipadWavelengthEmission[:, 1] * calibrationArray, 'b--')
+plt.plot(benqWavelengthEmission[:, 0], benqWavelengthEmission[:, 1] * calibrationArray, 'b--')
 #plt.plot(skyWavelengthEmission[:, 0], skyWavelengthEmission[:, 1] * calibrationArray, 'r--')
 
 plt.show()
@@ -697,9 +787,12 @@ plt.show()
 print('Scaled :: {}'.format(scaledSunlightEmission))
 
 #spectrumCheck(sunDimImg, 0.08)
-spectrumCheck(skyImg, 0.5)
+#spectrumCheck(skyImg, 0.5)
 #spectrumCheck(sunMediumImg, 0.50)
 #spectrumCheck(benQImg, 0.10)
 #spectrumCheck(iPadImg, 0.30)
+spectrumCheck(incadecentAImg, 0.01)
+#spectrumCheck(incadecentBImg, 0.10)
+#spectrumCheck(ledImg, 0.10)
 cv2.imshow('Force Pause', np.ones([100, 100, 1], dtype='uint8'))
 cv2.waitKey(0)
