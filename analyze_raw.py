@@ -591,8 +591,9 @@ def scaleEmissionCurve(emission, startWavelength, endWavelength):
     return quantized
 
 def combineCurves(sourceCurve, targetCurve):
-    for source, target in zip(sourceCurve, targetCurve):
-        print('{} * {} = {}'.format(source, target, source * target))
+    #for source, target in zip(sourceCurve, targetCurve):
+    #    print('{} * {} = {}'.format(source, target, source * target))
+    return np.stack([sourceCurve[:, 0], (sourceCurve[:, 1] * targetCurve[:, 1])], axis=1)
 
 
 #y=mx+b
@@ -669,6 +670,30 @@ def calibrateCurve(curve, calibrationCurve):
     y /= np.max(y)
     return np.stack([curve[:, 0], y], axis=1)
 
+def spectrumToBGR(spectrum, sensitivity):
+    red = spectrum[:, 1] * sensitivity[0][:, 1]
+    green = spectrum[:, 1] * sensitivity[1][:, 1]
+    blue = spectrum[:, 1] * sensitivity[2][:, 1]
+
+    plt.plot(spectrum[:, 0], red, 'r-')
+    plt.plot(spectrum[:, 0], green, 'g-')
+    plt.plot(spectrum[:, 0], blue, 'b-')
+    #plt.show()
+
+    sums = [np.sum(red), np.sum(green), np.sum(blue)]
+    largest = max(sums)
+    scaledSums = sums / largest
+
+    scaledSums8bit = [np.round(channel * 255).astype('uint8') for channel in scaledSums]
+
+    #print('BGR :: ({}, {}, {})'.format(blue, green, red))
+    print('----------')
+    print('RGB :: ({}, {}, {})'.format(*sums))
+    print('Scaled RGB :: ({}, {}, {})'.format(*scaledSums))
+    print('Scaled RGB 8bit :: ({}, {}, {})'.format(*scaledSums8bit))
+    print('----------')
+    return [blue, green, red]
+
 
 cropLED = [[0.470, 0.641], [0.025, 0.162], 1]
 cropIncandecentA = [[0.477, 0.649], [0.025, 0.162], 1]
@@ -735,9 +760,9 @@ scaledAfrica3 = scaleReflectanceCurve(africa3, 400, 700, 1211, 0, 0.55)
 #plt.plot(scaledEyeSensitivity[1][:, 0], scaledEyeSensitivity[1][:, 1], 'g.')
 #plt.plot(scaledEyeSensitivity[2][:, 0], scaledEyeSensitivity[2][:, 1], 'b.')
 
-#plt.plot(scaledEurope1[:, 0], scaledEurope1[:, 1], 'k--')
-#plt.plot(scaledEurope2[:, 0], scaledEurope2[:, 1], 'k-')
-#plt.plot(scaledEurope3[:, 0], scaledEurope3[:, 1], 'k-')
+#plt.plot(scaledEurope1[:, 0], scaledEurope1[:, 1], 'b-')
+#plt.plot(scaledEurope2[:, 0], scaledEurope2[:, 1], 'g-')
+#plt.plot(scaledEurope3[:, 0], scaledEurope3[:, 1], 'r-')
 #
 #plt.plot(scaledEastAsia1[:, 0], scaledEastAsia1[:, 1], 'b--')
 #plt.plot(scaledEastAsia2[:, 0], scaledEastAsia2[:, 1], 'b-')
@@ -754,52 +779,70 @@ scaledAfrica3 = scaleReflectanceCurve(africa3, 400, 700, 1211, 0, 0.55)
 startCrop = 420
 endCrop = 650
 
+#iphoneWavelengthSensitivityRed = smoothCurve(scaledSunlightEmission[0])
+#iphoneWavelengthSensitivityRed = cropSpectrum(iphoneWavelengthSensitivityRed, startCrop, endCrop)
+#
+#iphoneWavelengthSensitivityGreen = smoothCurve(scaledSunlightEmission[1])
+#iphoneWavelengthSensitivityGreen = cropSpectrum(iphoneWavelengthSensitivityGreen, startCrop, endCrop)
+#
+#iphoneWavelengthSensitivityBlue = smoothCurve(scaledSunlightEmission[2])
+#iphoneWavelengthSensitivityBlue = cropSpectrum(iphoneWavelengthSensitivityBlue, startCrop, endCrop)
+
+iphoneWavelengthSensitivityPerChannel = [cropSpectrum(smoothCurve(channel), startCrop, endCrop) for channel in scaledSunlightEmission]
+#print('sensitivity per channel :: {}'.format(iphoneWavelengthSensitivityPerChannel))
+
+#plt.plot(iphoneWavelengthSensitivityPerChannel[0][:, 0], iphoneWavelengthSensitivityPerChannel[0][:, 1], 'r-')
+#plt.plot(iphoneWavelengthSensitivityPerChannel[1][:, 0], iphoneWavelengthSensitivityPerChannel[1][:, 1], 'g-')
+#plt.plot(iphoneWavelengthSensitivityPerChannel[2][:, 0], iphoneWavelengthSensitivityPerChannel[2][:, 1], 'b-')
+#plt.show()
+
+
 iphoneWavelengthSensitivity = combineRGBtoFullSpectrum(*scaledSunlightEmission)
 iphoneWavelengthSensitivity = smoothCurve(iphoneWavelengthSensitivity)
 iphoneWavelengthSensitivity = cropSpectrum(iphoneWavelengthSensitivity, startCrop, endCrop)
 #plt.plot(iphoneWavelengthSensitivity[:, 0], iphoneWavelengthSensitivity[:, 1], 'k-')
 
-scaledSunlightCroppped = cropSpectrum(scaledSunlightEmissionGroundTruth, startCrop, endCrop)
-#plt.plot(scaledSunlightCroppped[:, 0], scaledSunlightCroppped[:, 1], 'y-')
+scaledSunlightEmissionGroundTruthCroppped = cropSpectrum(scaledSunlightEmissionGroundTruth, startCrop, endCrop)
+#plt.plot(scaledSunlightEmissionGroundTruthCroppped[:, 0], scaledSunlightEmissionGroundTruthCroppped[:, 1], 'y-')
 
-calibrationArray = getCalibrationArray(iphoneWavelengthSensitivity, scaledSunlightCroppped)
+calibrationArray = getCalibrationArray(iphoneWavelengthSensitivity, scaledSunlightEmissionGroundTruthCroppped)
 
 ipadWavelengthEmission = combineRGBtoFullSpectrum(*scaledIpadLightEmission)
 ipadWavelengthEmission = smoothCurve(ipadWavelengthEmission)
 ipadWavelengthEmission = cropSpectrum(ipadWavelengthEmission, startCrop, endCrop)
 ipadWavelengthEmissionCalibrated = calibrateCurve(ipadWavelengthEmission, calibrationArray)
-plt.plot(ipadWavelengthEmissionCalibrated[:, 0], ipadWavelengthEmissionCalibrated[:, 1], 'k-')
+#plt.plot(ipadWavelengthEmissionCalibrated[:, 0], ipadWavelengthEmissionCalibrated[:, 1], 'k-')
 #plt.plot(ipadWavelengthEmission[:, 0], ipadWavelengthEmission[:, 1], 'b-')
 
 #skyWavelengthEmission = combineRGBtoFullSpectrum(*scaledSkyLightEmission)
 #skyWavelengthEmission = cropSpectrum(skyWavelengthEmission, 420, 650)
 #plt.plot(skyWavelengthEmission[:, 0], skyWavelengthEmission[:, 1], 'r-')
 
-#benqWavelengthEmission = combineRGBtoFullSpectrum(*scaledBenQLightEmission)
-#benqWavelengthEmission = cropSpectrum(benqWavelengthEmission, 420, 650)
-#plt.plot(benqWavelengthEmission[:, 0], benqWavelengthEmission[:, 1], 'b-')
+benqWavelengthEmission = combineRGBtoFullSpectrum(*scaledBenQLightEmission)
+benqWavelengthEmission = smoothCurve(benqWavelengthEmission)
+benqWavelengthEmission = cropSpectrum(benqWavelengthEmission, startCrop, endCrop)
+benqWavelengthEmissionCalibrated = calibrateCurve(benqWavelengthEmission, calibrationArray)
+#plt.plot(benqWavelengthEmissionCalibrated[:, 0], benqWavelengthEmissionCalibrated[:, 1], 'b-')
 
 ledWavelengthEmission = combineRGBtoFullSpectrum(*scaledLEDLightEmission)
 ledWavelengthEmission = smoothCurve(ledWavelengthEmission)
 ledWavelengthEmission = cropSpectrum(ledWavelengthEmission, startCrop, endCrop)
-#plt.plot(ledWavelengthEmission[:, 0], ledWavelengthEmission[:, 1], 'r-')
 ledWavelengthEmissionCalibrated = calibrateCurve(ledWavelengthEmission, calibrationArray)
-plt.plot(ledWavelengthEmissionCalibrated[:, 0], ledWavelengthEmissionCalibrated[:, 1], 'r-')
+#plt.plot(ledWavelengthEmissionCalibrated[:, 0], ledWavelengthEmissionCalibrated[:, 1], 'r-')
 
 incAWavelengthEmission = combineRGBtoFullSpectrum(*scaledIncALightEmission)
 incAWavelengthEmission = smoothCurve(incAWavelengthEmission)
 incAWavelengthEmission = cropSpectrum(incAWavelengthEmission, startCrop, endCrop)
-#plt.plot(incAWavelengthEmission[:, 0], incAWavelengthEmission[:, 1], 'g-')
 incAWavelengthEmissionCalibrated = calibrateCurve(incAWavelengthEmission, calibrationArray)
-plt.plot(incAWavelengthEmissionCalibrated[:, 0], incAWavelengthEmissionCalibrated[:, 1], 'g-')
+#plt.plot(incAWavelengthEmissionCalibrated[:, 0], incAWavelengthEmissionCalibrated[:, 1], 'g-')
 
 
 incBWavelengthEmission = combineRGBtoFullSpectrum(*scaledIncBLightEmission)
 incBWavelengthEmission = smoothCurve(incBWavelengthEmission)
 incBWavelengthEmission = cropSpectrum(incBWavelengthEmission, startCrop, endCrop)
-#plt.plot(incBWavelengthEmission[:, 0], incBWavelengthEmission[:, 1], 'b-')
 incBWavelengthEmissionCalibrated = calibrateCurve(incBWavelengthEmission, calibrationArray)
-plt.plot(incBWavelengthEmissionCalibrated[:, 0], incBWavelengthEmissionCalibrated[:, 1], 'b-')
+#plt.plot(incBWavelengthEmissionCalibrated[:, 0], incBWavelengthEmissionCalibrated[:, 1], 'b-')
+#plt.show()
 
 #plt.plot(ipadWavelengthEmission[:, 0], ipadWavelengthEmission[:, 1] * calibrationArray, 'b--')
 #plt.plot(benqWavelengthEmission[:, 0], benqWavelengthEmission[:, 1] *calibrationArray, 'b--')
@@ -810,9 +853,126 @@ plt.plot(incBWavelengthEmissionCalibrated[:, 0], incBWavelengthEmissionCalibrate
 
 #plt.plot(skyWavelengthEmission[:, 0], skyWavelengthEmission[:, 1] * calibrationArray, 'r--')
 
+scaledEurope1Cropped = cropSpectrum(scaledEurope1, startCrop, endCrop)
+#plt.plot(scaledEurope1Cropped[:, 0], scaledEurope1Cropped[:, 1], 'b--')
+
+scaledEurope2Cropped = cropSpectrum(scaledEurope2, startCrop, endCrop)
+#plt.plot(scaledEurope2Cropped[:, 0], scaledEurope2Cropped[:, 1], 'g--')
+
+scaledEurope3Cropped = cropSpectrum(scaledEurope3, startCrop, endCrop)
+#plt.plot(scaledEurope3Cropped[:, 0], scaledEurope3Cropped[:, 1], 'r--')
+
+
+scaledEastAsia1Cropped = cropSpectrum(scaledEastAsia1, startCrop, endCrop)
+#plt.plot(scaledEastAsia1Cropped[:, 0], scaledEastAsia1Cropped[:, 1], 'b--')
+
+scaledEastAsia2Cropped = cropSpectrum(scaledEastAsia2, startCrop, endCrop)
+#plt.plot(scaledEastAsia2Cropped[:, 0], scaledEastAsia2Cropped[:, 1], 'g--')
+
+scaledEastAsia3Cropped = cropSpectrum(scaledEastAsia3, startCrop, endCrop)
+#plt.plot(scaledEastAsia3Cropped[:, 0], scaledEastAsia3Cropped[:, 1], 'r--')
+
+
+scaledSouthAsia1Cropped = cropSpectrum(scaledSouthAsia1, startCrop, endCrop)
+#plt.plot(scaledSouthAsia1Cropped[:, 0], scaledSouthAsia1Cropped[:, 1], 'b--')
+
+scaledSouthAsia2Cropped = cropSpectrum(scaledSouthAsia2, startCrop, endCrop)
+#plt.plot(scaledSouthAsia2Cropped[:, 0], scaledSouthAsia2Cropped[:, 1], 'g--')
+
+scaledSouthAsia3Cropped = cropSpectrum(scaledSouthAsia3, startCrop, endCrop)
+#plt.plot(scaledSouthAsia3Cropped[:, 0], scaledSouthAsia3Cropped[:, 1], 'r--')
+
+
+scaledAfrica1Cropped = cropSpectrum(scaledAfrica1, startCrop, endCrop)
+#plt.plot(scaledAfrica1Cropped[:, 0], scaledAfrica1Cropped[:, 1], 'b--')
+
+scaledAfrica2Cropped = cropSpectrum(scaledAfrica2, startCrop, endCrop)
+#plt.plot(scaledAfrica2Cropped[:, 0], scaledAfrica2Cropped[:, 1], 'g--')
+
+scaledAfrica3Cropped = cropSpectrum(scaledAfrica3, startCrop, endCrop)
+#plt.plot(scaledAfrica3Cropped[:, 0], scaledAfrica3Cropped[:, 1], 'r--')
+
+
+
+combinedEurope1Ipad = combineCurves(scaledEurope1Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedEurope1Ipad[:, 0], combinedEurope1Ipad[:, 1], 'b-')
+
+combinedEurope1Benq = combineCurves(scaledEurope1Cropped, benqWavelengthEmissionCalibrated)
+combinedEurope1Led = combineCurves(scaledEurope1Cropped, ledWavelengthEmissionCalibrated)
+combinedEurope1IncA = combineCurves(scaledEurope1Cropped, incAWavelengthEmissionCalibrated)
+combinedEurope1IncB = combineCurves(scaledEurope1Cropped, incBWavelengthEmissionCalibrated)
+
+combinedEurope2Ipad = combineCurves(scaledEurope2Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedEurope2Ipad[:, 0], combinedEurope2Ipad[:, 1], 'g-')
+
+combinedEurope3Ipad = combineCurves(scaledEurope3Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedEurope3Ipad[:, 0], combinedEurope3Ipad[:, 1], 'r-')
+
+
+combinedEastAsia1Ipad = combineCurves(scaledEastAsia1Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedEastAsia1Ipad[:, 0], combinedEastAsia1Ipad[:, 1], 'b-')
+
+combinedEastAsia2Ipad = combineCurves(scaledEastAsia2Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedEastAsia2Ipad[:, 0], combinedEastAsia2Ipad[:, 1], 'g-')
+
+combinedEastAsia3Ipad = combineCurves(scaledEastAsia3Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedEastAsia3Ipad[:, 0], combinedEastAsia3Ipad[:, 1], 'r-')
+
+
+combinedSouthAsia1Ipad = combineCurves(scaledSouthAsia1Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedSouthAsia1Ipad[:, 0], combinedSouthAsia1Ipad[:, 1], 'b-')
+
+combinedSouthAsia2Ipad = combineCurves(scaledSouthAsia2Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedSouthAsia2Ipad[:, 0], combinedSouthAsia2Ipad[:, 1], 'g-')
+
+combinedSouthAsia3Ipad = combineCurves(scaledSouthAsia3Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedSouthAsia3Ipad[:, 0], combinedSouthAsia3Ipad[:, 1], 'r-')
+
+
+combinedAfrica1Ipad = combineCurves(scaledAfrica1Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedAfrica1Ipad[:, 0], combinedAfrica1Ipad[:, 1], 'b-')
+
+combinedAfrica2Ipad = combineCurves(scaledAfrica2Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedAfrica2Ipad[:, 0], combinedAfrica2Ipad[:, 1], 'g-')
+
+combinedAfrica3Ipad = combineCurves(scaledAfrica3Cropped, ipadWavelengthEmissionCalibrated)
+plt.plot(combinedAfrica3Ipad[:, 0], combinedAfrica3Ipad[:, 1], 'r-')
+
+
+combinedEurope1Sunlight = combineCurves(scaledEurope1Cropped, scaledSunlightEmissionGroundTruthCroppped)
+combinedEurope2Sunlight = combineCurves(scaledEurope2Cropped, scaledSunlightEmissionGroundTruthCroppped)
+combinedEurope3Sunlight = combineCurves(scaledEurope3Cropped, scaledSunlightEmissionGroundTruthCroppped)
+#plt.plot(combinedEurope1Sunlight[:, 0], combinedEurope1Sunlight[:, 1], 'g-')
+
 plt.show()
 
-print('Scaled :: {}'.format(scaledSunlightEmission))
+#print('Scaled :: {}'.format(scaledSunlightEmission))
+
+print('IPAD')
+print('-Europe 1')
+spectrumToBGR(combinedEurope1Ipad, iphoneWavelengthSensitivityPerChannel)
+print('-Europe 2')
+spectrumToBGR(combinedEurope2Ipad, iphoneWavelengthSensitivityPerChannel)
+print('-Europe 3')
+spectrumToBGR(combinedEurope3Ipad, iphoneWavelengthSensitivityPerChannel)
+print('SUNLIGHT')
+print('-Europe 1')
+spectrumToBGR(combinedEurope1Sunlight, iphoneWavelengthSensitivityPerChannel)
+print('-Europe 2')
+spectrumToBGR(combinedEurope2Sunlight, iphoneWavelengthSensitivityPerChannel)
+print('-Europe 3')
+spectrumToBGR(combinedEurope3Sunlight, iphoneWavelengthSensitivityPerChannel)
+#print('SUNLIGHT')
+#spectrumToBGR(combinedEurope1Sunlight, iphoneWavelengthSensitivityPerChannel)
+#print('BenQ')
+#spectrumToBGR(combinedEurope1Benq, iphoneWavelengthSensitivityPerChannel)
+#print('LED')
+#spectrumToBGR(combinedEurope1Led, iphoneWavelengthSensitivityPerChannel)
+#print('IncadecentA')
+#spectrumToBGR(combinedEurope1IncA, iphoneWavelengthSensitivityPerChannel)
+#print('IncadecentB')
+#spectrumToBGR(combinedEurope1IncB, iphoneWavelengthSensitivityPerChannel)
+plt.show()
 
 #spectrumCheck(sunDimImg, 0.08)
 #spectrumCheck(skyImg, 0.5)
