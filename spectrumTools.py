@@ -82,7 +82,6 @@ def quantizeCurve(curveObject):
 def smoothCurve(curveObject):
     curve = curveObject['curve']
     y = savgol_filter(curve[:, 1], 15, 3)
-    y /= np.max(y)
     curveObject['curve'] = np.stack([curve[:, 0], y], axis=1)
     return curveObject
 
@@ -91,10 +90,16 @@ def scaleCurve(curveObject):
     startWavelength, endWavelength = curveObject['wavelengthRange']
     wavelengthRange = endWavelength - startWavelength
 
+    startYAxisPixel, endYAxisPixel = curveObject['yAxisPixelRange']
+    yAxisPixelRange = endYAxisPixel - startYAxisPixel
+
+    startYAxisRatio, endYAxisRatio = curveObject['yAxisRatioRange']
+    yAxisRatioRange = endYAxisRatio - startYAxisRatio
+
     maxX, maxY = np.max(curve, axis=0)
 
     x = ((curve[:, 0] / maxX) * wavelengthRange) + startWavelength
-    y = curve[:, 1] / maxY
+    y = ((curve[:, 1] / yAxisPixelRange) * yAxisRatioRange) + startYAxisRatio
 
     curveObject['curve'] = np.stack([x, y], axis=1)
     return curveObject
@@ -109,13 +114,46 @@ def plotCurve(curveObject, marker, show=True):
     if show:
         plt.show()
 
-#COUNTRIES ARE INVERTED!
-europe1 = readTracedCurves('europe1')
-europe1Scaled = scaleCurve(copy.deepcopy(europe1))
-europe1Quant = quantizeCurve(europe1Scaled)
-europe1Smoothed = smoothCurve(europe1Quant)
+def invertCurve(curveObject):
+    curve = curveObject['curve']
+    startYAxisPixel, endYAxisPixel = curveObject['yAxisPixelRange']
+    curve[:, 1] = endYAxisPixel - curve[:, 1]
+    curveObject['curve'] = curve
+    return curveObject
 
-plotCurve(europe1, 'k-', False)
-plotCurve(europe1Smoothed, 'g-')
+def getCountryCurveObject(name):
+    countryObject = readTracedCurves(name)
+    correctedOrientation = invertCurve(countryObject)
+    scaled = scaleCurve(correctedOrientation)
+    quantized = quantizeCurve(scaled)
+    smoothed = smoothCurve(quantized)
+    return smoothed
+
+
+europe1 = getCountryCurveObject('europe1')
+europe2 = getCountryCurveObject('europe2')
+europe3 = getCountryCurveObject('europe3')
+southAsia1 = getCountryCurveObject('southAsia1')
+southAsia2 = getCountryCurveObject('southAsia2')
+southAsia3 = getCountryCurveObject('southAsia3')
+eastAsia1 = getCountryCurveObject('eastAsia1')
+eastAsia2 = getCountryCurveObject('eastAsia2')
+eastAsia3 = getCountryCurveObject('eastAsia3')
+africa1 = getCountryCurveObject('africa1')
+africa2 = getCountryCurveObject('africa2')
+africa3 = getCountryCurveObject('africa3')
+
+plotCurve(europe1, 'r-', False)
+plotCurve(europe2, 'b-', False)
+plotCurve(europe3, 'g-', False)
+plotCurve(southAsia1, 'r-', False)
+plotCurve(southAsia2, 'b-', False)
+plotCurve(southAsia3, 'g-', False)
+plotCurve(eastAsia1, 'r-', False)
+plotCurve(eastAsia2, 'b-', False)
+plotCurve(eastAsia3, 'g-', False)
+plotCurve(africa1, 'r-', False)
+plotCurve(africa2, 'b-', False)
+plotCurve(africa3, 'g-')
 
 
