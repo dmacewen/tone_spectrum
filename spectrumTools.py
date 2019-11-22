@@ -1,0 +1,121 @@
+import csv
+import numpy as np
+import matplotlib.pyplot as plt
+import copy
+from scipy.signal import savgol_filter
+
+#Curve Object
+# - Curve Points
+# - startWavelength, endWavelength
+# - startYAxisPixel, endYAxisPixel
+# - startYAxisRatio, endYAxisRatio
+
+def makeCurveObject(curve, wavelengthRange, yAxisPixelRange, yAxisRatioRange):
+    curveObject = {}
+    curveObject['curve'] = curve
+    curveObject['wavelengthRange'] = wavelengthRange
+    curveObject['yAxisPixelRange'] = yAxisPixelRange
+    curveObject['yAxisRatioRange'] = yAxisRatioRange
+
+    return curveObject
+
+def readCurve(path):
+    with open(path, newline='') as csvFile:
+        reader = csv.reader(csvFile, delimiter=',')
+        rawFilePairs = [pair for pair in reader]
+
+        wavelengthRange = [int(num) for num in rawFilePairs[0]]
+        yAxisPixelRange = [int(num) for num in rawFilePairs[1]]
+        yAxisRatioRange = [float(num) for num in rawFilePairs[2]]
+        curve = np.asarray([[int(pair[0]), int(pair[1])] for pair in rawFilePairs[3:]])
+
+        return makeCurveObject(curve, wavelengthRange, yAxisPixelRange, yAxisRatioRange)
+
+def readTracedCurves(fileName):
+    return readCurve('curves/tracedCurves/{}.csv'.format(fileName))
+
+def readMeasuredCurves(fileName):
+    return readCurve('curves/measuredCurves/{}.csv'.format(fileName))
+
+def writeCurve(path, curveObject):
+    with open(path, 'w', newline='') as csvFile:
+        writer = csv.writer(csvFile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(curveObject['wavelengthRange'])
+        writer.writerow(curveObject['yAxisPixelRange'])
+        writer.writerow(curveObject['yAxisRatioRange'])
+        writer.writerows(curveObject['curve'])
+
+def writeMeasuredCurve(fileName, curveObject):
+    writeCurve('curves/measuredCurves/{}.csv'.format(fileName), curveObject)
+
+def writeComputedCurve(fileName, curveObject):
+    writeCurve('curves/computedCurves/{}.csv'.format(fileName), curveObject)
+
+#y=mx+b
+#m = rise/run... (y2 - y1) / (x2 - x1)
+#b = y1 - m * x1
+def quantizeCurve(curveObject):
+    curve = curveObject['curve']
+
+    #sortedPoints = np.array(sorted(curve, key=lambda point: point[0]))
+    pointDiffs = curve[1:] - curve[:-1]
+
+    slopes = pointDiffs[:, 1] / pointDiffs[:, 0]
+    intercepts = curve[:-1, 1] - (slopes * curve[:-1, 0])
+    slopeRanges = np.stack([curve[:-1, 0], curve[1:, 0]], axis=1)
+
+    points = []
+    for m, b, lineRange in zip(slopes, intercepts, slopeRanges):
+        if (lineRange[0] == lineRange[1]) or (lineRange[0] == (lineRange[1] + 1)):
+            xValues = lineRange[0]
+        else:
+            xValues = np.arange(np.floor(lineRange[0]), np.floor(lineRange[1]))
+        yValues = xValues * m + b
+        points.append(np.stack([xValues, yValues], axis=1))
+
+    curve = np.concatenate(points, axis=0)
+    curveObject['curve'] = curve
+
+    return curveObject
+
+#Smooth after scaling! 
+def smoothCurve(curveObject):
+    curve = curveObject['curve']
+    y = savgol_filter(curve[:, 1], 15, 3)
+    y /= np.max(y)
+    curveObject['curve'] = np.stack([curve[:, 0], y], axis=1)
+    return curveObject
+
+def scaleCurve(curveObject):
+    curve = curveObject['curve']
+    startWavelength, endWavelength = curveObject['wavelengthRange']
+    wavelengthRange = endWavelength - startWavelength
+
+    maxX, maxY = np.max(curve, axis=0)
+
+    x = ((curve[:, 0] / maxX) * wavelengthRange) + startWavelength
+    y = curve[:, 1] / maxY
+
+    curveObject['curve'] = np.stack([x, y], axis=1)
+    return curveObject
+
+def cropCurve(curve, startWavelength, endWavelength):
+    return None
+
+def plotCurve(curveObject, marker, show=True):
+    curve = curveObject['curve']
+    plt.plot(curve[:, 0], curve[:, 1], marker)
+
+    if show:
+        plt.show()
+
+#COUNTRIES ARE INVERTED!
+europe1 = readTracedCurves('europe1')
+europe1Scaled = scaleCurve(copy.deepcopy(europe1))
+europe1Quant = quantizeCurve(europe1Scaled)
+europe1Smoothed = smoothCurve(europe1Quant)
+
+plotCurve(europe1, 'k-', False)
+plotCurve(europe1Smoothed, 'g-')
+
+
