@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import copy
 from scipy.signal import savgol_filter
 
+targetWavelengthRange = [420, 650]
+
 #Curve Object
 # - Curve Points
 # - startWavelength, endWavelength
@@ -104,8 +106,15 @@ def scaleCurve(curveObject):
     curveObject['curve'] = np.stack([x, y], axis=1)
     return curveObject
 
-def cropCurve(curve, startWavelength, endWavelength):
-    return None
+def cropCurve(curveObject):
+    curve = curveObject['curve']
+    start, end = targetWavelengthRange
+    startIndex = np.argmax(curve[:, 0] == start)
+    endIndex = np.argmax(curve[:, 0] == end)
+    curve = curve[startIndex:endIndex, :]
+    curveObject['curve'] = curve
+    curveObject['wavelengthRange'] = targetWavelengthRange
+    return curveObject
 
 def plotCurve(curveObject, marker, show=True):
     curve = curveObject['curve']
@@ -127,8 +136,16 @@ def getCountryCurveObject(name):
     scaled = scaleCurve(correctedOrientation)
     quantized = quantizeCurve(scaled)
     smoothed = smoothCurve(quantized)
-    return smoothed
+    cropped = cropCurve(smoothed)
+    return cropped
 
+def getGroundtruthSunlightCurveObject():
+    sunlightObject = readTracedCurves('sunlight')
+    scaled = scaleCurve(sunlightObject)
+    quantized = quantizeCurve(scaled)
+    smoothed = smoothCurve(quantized)
+    cropped = cropCurve(smoothed)
+    return cropped
 
 europe1 = getCountryCurveObject('europe1')
 europe2 = getCountryCurveObject('europe2')
@@ -143,6 +160,8 @@ africa1 = getCountryCurveObject('africa1')
 africa2 = getCountryCurveObject('africa2')
 africa3 = getCountryCurveObject('africa3')
 
+groundTruthSunlight = getGroundtruthSunlightCurveObject()
+
 plotCurve(europe1, 'r-', False)
 plotCurve(europe2, 'b-', False)
 plotCurve(europe3, 'g-', False)
@@ -154,6 +173,7 @@ plotCurve(eastAsia2, 'b-', False)
 plotCurve(eastAsia3, 'g-', False)
 plotCurve(africa1, 'r-', False)
 plotCurve(africa2, 'b-', False)
-plotCurve(africa3, 'g-')
+plotCurve(africa3, 'g-', False)
 
+plotCurve(groundTruthSunlight, 'y-')
 
