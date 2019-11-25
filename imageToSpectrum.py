@@ -5,13 +5,15 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 import math
 
-skyImg = ['sky', 0.5]
-sunDimImg = ['sunlightDim', 0.08]
-benQImg = ['BenQ2', 0.1]
-iPadImg = ['iPad', 0.3] #400nm -> 710nm
-incadecentAImg = ['IncadecentA_card', 0.5]
-incadecentBImg = ['IncadecentB_card', 0.5]
-ledImg = ['LED_card' , 0.5]
+import spectrumTools
+
+skyImg = ['sky', 0.5, [385, 725]]
+sunDimImg = ['sunlightDim', 0.08, [385, 725]]
+benQImg = ['BenQ2', 0.1, [385, 725]]
+iPadImg = ['iPad', 0.3, [385, 725]] 
+incadecentAImg = ['IncadecentA_card', 0.5, [385, 725]]
+incadecentBImg = ['IncadecentB_card', 0.5, [385, 725]]
+ledImg = ['LED_card' , 0.5, [385, 725]]
 
 def stretch(img, mask=None):
     mask = mask if mask is not None else np.ones(img.shape, dtype='bool')
@@ -70,7 +72,7 @@ def loadRawImage(filename):
 
 
 #Crop is [[Y, X], [Height, Width], HeightRatio]
-def extractSpectrums(imgFileName, threshold):#, crop=None):
+def extractSpectrums(imgFileName, threshold, wavelengthRange):#, crop=None):
     with rawpy.imread('images/imagesRed/{}.DNG'.format(imgFileName)) as raw:
         imgDim = raw.raw_image.shape
 
@@ -186,17 +188,41 @@ def extractSpectrums(imgFileName, threshold):#, crop=None):
     greenMedians = greenMedians[:offByOneCheck]
     blueMedians = blueMedians[:offByOneCheck]
 
-    return [numbers, [redImg, redMedians], [greenImg, greenMedians], [blueImg, blueMedians]]
+    return [numbers, [redImg, redMedians], [greenImg, greenMedians], [blueImg, blueMedians], wavelengthRange]
 
 def showSpectrum(imageSpectrumObject, name, wait=True):
-    numbers, red, green, blue = imageSpectrumObject
+    numbers, red, green, blue, wavelengthRange = imageSpectrumObject
     
     stacked = np.vstack([numbers, red[0], green[0], blue[0]])
     cv2.imshow('RGB {}'.format(name), stacked)
     if wait:
         cv2.waitKey(0)
 
+def saveCurve(imageSpectrumObject, name):
+    numbers, red, green, blue, wavelengthRange = imageSpectrumObject
+
+    redX = np.linspace(wavelengthRange[0], wavelengthRange[1], len(red[1]))
+    greenX = np.linspace(wavelengthRange[0], wavelengthRange[1], len(green[1]))
+    blueX = np.linspace(wavelengthRange[0], wavelengthRange[1], len(blue[1]))
+
+    redCurve = np.stack([redX, red[1]], axis=1)
+    greenCurve = np.stack([greenX, green[1]], axis=1)
+    blueCurve = np.stack([blueX, blue[1]], axis=1)
+
+    redCurveObject = spectrumTools.makeCurveObject(redCurve, wavelengthRange, [0, 1], [0, 1])
+    greenCurveObject = spectrumTools.makeCurveObject(greenCurve, wavelengthRange, [0, 1], [0, 1])
+    blueCurveObject = spectrumTools.makeCurveObject(blueCurve, wavelengthRange, [0, 1], [0, 1])
+
+    spectrumTools.writeMeasuredCurve('{}_red'.format(name), redCurveObject)
+    spectrumTools.writeMeasuredCurve('{}_green'.format(name), greenCurveObject)
+    spectrumTools.writeMeasuredCurve('{}_blue'.format(name), blueCurveObject)
+
+
+
+CHECK WAVELENGTH RANGE VALUES 
+
 led = extractSpectrums(*ledImg)
+saveCurve(led, 'led')
 showSpectrum(led, 'led')
 
 #incA = extractSpectrums(incadecentAImg, 0.5)
