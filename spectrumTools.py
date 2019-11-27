@@ -29,7 +29,7 @@ def readCurve(path):
         wavelengthRange = [int(num) for num in rawFilePairs[0]]
         yAxisPixelRange = [int(num) for num in rawFilePairs[1]]
         yAxisRatioRange = [float(num) for num in rawFilePairs[2]]
-        curve = np.asarray([[int(pair[0]), int(pair[1])] for pair in rawFilePairs[3:]])
+        curve = np.asarray([[float(pair[0]), float(pair[1])] for pair in rawFilePairs[3:]])
 
         return makeCurveObject(curve, wavelengthRange, yAxisPixelRange, yAxisRatioRange)
 
@@ -123,6 +123,13 @@ def plotCurve(curveObject, marker, show=True):
     if show:
         plt.show()
 
+def plotRGBCurves(curveObjects, show=True):
+    redCurve, greenCurve, blueCurve = curveObjects
+
+    plotCurve(redCurve, 'r-', False)
+    plotCurve(greenCurve, 'g-', False)
+    plotCurve(blueCurve, 'b-', show)
+
 def invertCurve(curveObject):
     curve = curveObject['curve']
     startYAxisPixel, endYAxisPixel = curveObject['yAxisPixelRange']
@@ -139,6 +146,36 @@ def getCountryCurveObject(name):
     cropped = cropCurve(smoothed)
     return cropped
 
+def getMeasuredCurveObjects(name):
+    redObject = readMeasuredCurves('{}_red'.format(name))
+    greenObject = readMeasuredCurves('{}_green'.format(name))
+    blueObject = readMeasuredCurves('{}_blue'.format(name))
+
+    scaledRed = scaleCurve(redObject)
+    scaledGreen = scaleCurve(greenObject)
+    scaledBlue = scaleCurve(blueObject)
+
+    print(redObject)
+    print(scaledRed)
+
+    quantizedRed = quantizeCurve(scaledRed)
+    quantizedGreen = quantizeCurve(scaledGreen)
+    quantizedBlue = quantizeCurve(scaledBlue)
+
+    smoothedRed = smoothCurve(quantizedRed)
+    smoothedGreen = smoothCurve(quantizedGreen)
+    smoothedBlue = smoothCurve(quantizedBlue)
+
+    #croppedRed = cropCurve(smoothedRed)
+    #croppedGreen = cropCurve(smoothedGreen)
+    #croppedBlue = cropCurve(smoothedBlue)
+
+    croppedRed = smoothedRed
+    croppedGreen = smoothedGreen
+    croppedBlue = smoothedBlue
+
+    return [croppedRed, croppedGreen, croppedBlue]
+
 def getGroundtruthSunlightCurveObject():
     sunlightObject = readTracedCurves('sunlight')
     scaled = scaleCurve(sunlightObject)
@@ -147,7 +184,10 @@ def getGroundtruthSunlightCurveObject():
     cropped = cropCurve(smoothed)
     return cropped
 
-#europe1 = getCountryCurveObject('europe1')
+europe1 = getCountryCurveObject('europe1')
+rgbLedCurves = getMeasuredCurveObjects('led')
+rgbIncACurves = getMeasuredCurveObjects('incA')
+rgbIncBCurves = getMeasuredCurveObjects('incB')
 #europe2 = getCountryCurveObject('europe2')
 #europe3 = getCountryCurveObject('europe3')
 #southAsia1 = getCountryCurveObject('southAsia1')
@@ -160,7 +200,7 @@ def getGroundtruthSunlightCurveObject():
 #africa2 = getCountryCurveObject('africa2')
 #africa3 = getCountryCurveObject('africa3')
 #
-#groundTruthSunlight = getGroundtruthSunlightCurveObject()
+groundTruthSunlight = getGroundtruthSunlightCurveObject()
 #
 #plotCurve(europe1, 'r-', False)
 #plotCurve(europe2, 'b-', False)
@@ -175,5 +215,8 @@ def getGroundtruthSunlightCurveObject():
 #plotCurve(africa2, 'b-', False)
 #plotCurve(africa3, 'g-', False)
 #
-#plotCurve(groundTruthSunlight, 'y-')
+plotCurve(groundTruthSunlight, 'y-')
+plotRGBCurves(rgbLedCurves)
+plotRGBCurves(rgbIncACurves)
+plotRGBCurves(rgbIncBCurves)
 

@@ -8,7 +8,7 @@ import math
 import spectrumTools
 
 skyImg = ['sky', 0.5, [385, 725]]
-sunDimImg = ['sunlightDim', 0.08, [385, 725]]
+sunImg = ['sunlightDim', 0.08, [385, 725]]
 benQImg = ['BenQ2', 0.1, [385, 725]]
 iPadImg = ['iPad', 0.3, [385, 725]] 
 incadecentAImg = ['IncadecentA_card', 0.5, [385, 725]]
@@ -219,26 +219,32 @@ def saveCurve(imageSpectrumObject, name):
 
 
 
-CHECK WAVELENGTH RANGE VALUES 
+#CHECK WAVELENGTH RANGE VALUES 
 
-led = extractSpectrums(*ledImg)
-saveCurve(led, 'led')
-showSpectrum(led, 'led')
+#led = extractSpectrums(*ledImg)
+#saveCurve(led, 'led')
+#showSpectrum(led, 'led')
 
-#incA = extractSpectrums(incadecentAImg, 0.5)
-#showSpectrum(incA, 'Inc A', False)
+#incA = extractSpectrums(*incadecentAImg)
+#saveCurve(incA, 'IncA')
+#showSpectrum(incA, 'Inc A')
 
-#incB = extractSpectrums(incadecentBImg, 0.5)
-#showSpectrum(incB, 'Inc B', False)
+#incB = extractSpectrums(*incadecentBImg)
+#saveCurve(incB, 'IncB')
+#showSpectrum(incB, 'Inc B')
 
-#sky = extractSpectrums(skyImg, 0.5)
-#showSpectrum(sky, 'sky', False)
+#sky = extractSpectrums(*skyImg)
+#saveCurve(sky, 'Sky')
+#showSpectrum(sky, 'Sky')
 
-#sun = extractSpectrums(sunDimImg, 0.08)
-#showSpectrum(sun, 'Sun', False)
+#sun = extractSpectrums(*sunImg)
+#saveCurve(sun, 'Sun')
+#showSpectrum(sun, 'Sun')
 
-#benQ = extractSpectrums(benQImg, 0.1)
-#showSpectrum(benQ, 'ben Q', False)
+#benQ = extractSpectrums(*benQImg)
+#saveCurve(benQ, 'BenQ')
+#showSpectrum(benQ, 'BenQ')
 
-#iPad = extractSpectrums(iPadImg, 0.3)
+#iPad = extractSpectrums(*iPadImg)
+#saveCurve(iPad, 'iPad')
 #showSpectrum(iPad, 'iPad')
