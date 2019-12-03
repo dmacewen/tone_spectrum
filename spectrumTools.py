@@ -99,8 +99,9 @@ def scaleCurve(curveObject):
     yAxisRatioRange = endYAxisRatio - startYAxisRatio
 
     maxX, maxY = np.max(curve, axis=0)
+    minX, minY = np.min(curve, axis=0)
 
-    x = ((curve[:, 0] / maxX) * wavelengthRange) + startWavelength
+    x = (((curve[:, 0] - minX) / (maxX - minX)) * wavelengthRange) + startWavelength
     y = ((curve[:, 1] / yAxisPixelRange) * yAxisRatioRange) + startYAxisRatio
 
     curveObject['curve'] = np.stack([x, y], axis=1)
@@ -151,12 +152,14 @@ def getMeasuredCurveObjects(name):
     greenObject = readMeasuredCurves('{}_green'.format(name))
     blueObject = readMeasuredCurves('{}_blue'.format(name))
 
+    print(redObject)
+
     scaledRed = scaleCurve(redObject)
     scaledGreen = scaleCurve(greenObject)
     scaledBlue = scaleCurve(blueObject)
 
     print(redObject)
-    print(scaledRed)
+    #print(scaledRed)
 
     quantizedRed = quantizeCurve(scaledRed)
     quantizedGreen = quantizeCurve(scaledGreen)
@@ -166,13 +169,13 @@ def getMeasuredCurveObjects(name):
     smoothedGreen = smoothCurve(quantizedGreen)
     smoothedBlue = smoothCurve(quantizedBlue)
 
-    #croppedRed = cropCurve(smoothedRed)
-    #croppedGreen = cropCurve(smoothedGreen)
-    #croppedBlue = cropCurve(smoothedBlue)
+    croppedRed = cropCurve(smoothedRed)
+    croppedGreen = cropCurve(smoothedGreen)
+    croppedBlue = cropCurve(smoothedBlue)
 
-    croppedRed = smoothedRed
-    croppedGreen = smoothedGreen
-    croppedBlue = smoothedBlue
+    #croppedRed = smoothedRed
+    #croppedGreen = smoothedGreen
+    #croppedBlue = smoothedBlue
 
     return [croppedRed, croppedGreen, croppedBlue]
 
@@ -184,10 +187,55 @@ def getGroundtruthSunlightCurveObject():
     cropped = cropCurve(smoothed)
     return cropped
 
+def generateCalibrationCurve(groundTruthSunlightCurveObject, measuredSunlightCurveObject):
+    groundTruthSunlightCurve = groundTruthSunlightCurveObject['curve']
+    measuredSunlightCurve = measuredSunlightCurveObject['curve']
+
+    calibrationCurveX = measuredSunlightCurve[:, 0]
+    calibrationCurveY = groundTruthSunlightCurve[:, 1] / measuredSunlightCurve[:, 1]
+
+    calibrationCurve = np.stack([calibrationCurveX, calibrationCurveY], axis=1)
+
+    return makeCurveObject(calibrationCurve, measuredSunlightCurveObject['wavelengthRange'], measuredSunlightCurveObject['yAxisPixelRange'], measuredSunlightCurveObject['yAxisRatioRange'])
+
+def calibrateCurve(curveObject, calibrationCurveObject):
+    calibrationCurve = calibrationCurveObject['curve']
+    curve = curveObject['curve']
+
+    calibratedCurve = np.stack([curve[:, 0], (curve[:, 1] * calibrationCurve[:, 1])], axis=1)
+    calibratedCurve[:, 1] /= np.max(calibratedCurve[:, 1])
+
+    return makeCurveObject(calibratedCurve, curveObject['wavelengthRange'], curveObject['yAxisPixelRange'], curveObject['yAxisRatioRange'])
+
+def combineRGBCurves(rgbCurveObjects):
+    redCurveObject, greenCurveObject, blueCurveObject = rgbCurveObjects
+
+    redCurve = redCurveObject['curve']
+    greenCurve = greenCurveObject['curve']
+    blueCurve = blueCurveObject['curve']
+
+    combinedCurve = np.copy(redCurve)
+    combinedCurve[:, 1] = np.sum([redCurve[:, 1], greenCurve[:, 1], blueCurve[:, 1]], axis=0)
+
+    maxValue = max(combinedCurve[:, 1])
+
+    combinedCurve[:, 1] /= maxValue
+    
+    return makeCurveObject(combinedCurve, redCurveObject['wavelengthRange'], redCurveObject['yAxisPixelRange'], redCurveObject['yAxisRatioRange'])
+
+def getMeasuredCurve(name, calibrationCurve):
+    rgbCurves = getMeasuredCurveObjects(name)
+    combinedCurve = combineRGBCurves(rgbCurves)
+    calibratedCurve = calibrateCurve(combinedCurve, calibrationCurve)
+    return calibratedCurve
+
+groundTruthSunlight = getGroundtruthSunlightCurveObject()
+
+rgbSunCurves = getMeasuredCurveObjects('Sun')
+measuredSunCurve = combineRGBCurves(rgbSunCurves)
+calibrationCurve = generateCalibrationCurve(groundTruthSunlight, measuredSunCurve)
+
 europe1 = getCountryCurveObject('europe1')
-rgbLedCurves = getMeasuredCurveObjects('led')
-rgbIncACurves = getMeasuredCurveObjects('incA')
-rgbIncBCurves = getMeasuredCurveObjects('incB')
 #europe2 = getCountryCurveObject('europe2')
 #europe3 = getCountryCurveObject('europe3')
 #southAsia1 = getCountryCurveObject('southAsia1')
@@ -200,8 +248,15 @@ rgbIncBCurves = getMeasuredCurveObjects('incB')
 #africa2 = getCountryCurveObject('africa2')
 #africa3 = getCountryCurveObject('africa3')
 #
-groundTruthSunlight = getGroundtruthSunlightCurveObject()
-#
+
+ledCurve = getMeasuredCurve('led', calibrationCurve)
+incACurve = getMeasuredCurve('incA', calibrationCurve)
+incBCurve = getMeasuredCurve('incB', calibrationCurve)
+benQCurve = getMeasuredCurve('BenQ', calibrationCurve)
+skyCurve = getMeasuredCurve('Sky', calibrationCurve)
+ipadCurve = getMeasuredCurve('iPad', calibrationCurve)
+
+
 #plotCurve(europe1, 'r-', False)
 #plotCurve(europe2, 'b-', False)
 #plotCurve(europe3, 'g-', False)
@@ -214,9 +269,20 @@ groundTruthSunlight = getGroundtruthSunlightCurveObject()
 #plotCurve(africa1, 'r-', False)
 #plotCurve(africa2, 'b-', False)
 #plotCurve(africa3, 'g-', False)
-#
-plotCurve(groundTruthSunlight, 'y-')
-plotRGBCurves(rgbLedCurves)
-plotRGBCurves(rgbIncACurves)
-plotRGBCurves(rgbIncBCurves)
+
+plotCurve(groundTruthSunlight, 'y-', False)
+plotCurve(ledCurve, 'b-', False)
+plotCurve(skyCurve, 'b--', False)
+plotCurve(incACurve, 'r-', False)
+plotCurve(incBCurve, 'g-', False)
+plotCurve(ipadCurve, 'k-')
+
+#plotRGBCurves(rgbSunCurves, False)
+#plotCurve(checkCurve, 'r*', False)
+#plotCurve(groundTruthSunlight, 'y-', False)
+#plotCurve(combinedSunCurve, 'k-')
+
+#plotRGBCurves(rgbBenQCurves)
+#plotRGBCurves(rgbSkyCurves)
+#plotRGBCurves(rgbSunCurves)
 
