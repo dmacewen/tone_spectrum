@@ -53,7 +53,7 @@ def writeMeasuredCurve(fileName, curveObject):
 def writeComputedCurve(fileName, curveObject):
     writeCurve('curves/computedCurves/{}.csv'.format(fileName), curveObject)
 
-#y=mx+b
+#y = mx+b
 #m = rise/run... (y2 - y1) / (x2 - x1)
 #b = y1 - m * x1
 def quantizeCurve(curveObject):
@@ -247,7 +247,6 @@ europe1 = getCountryCurveObject('europe1')
 #africa1 = getCountryCurveObject('africa1')
 #africa2 = getCountryCurveObject('africa2')
 #africa3 = getCountryCurveObject('africa3')
-#
 
 ledCurve = getMeasuredCurve('led', calibrationCurve)
 incACurve = getMeasuredCurve('incA', calibrationCurve)
@@ -255,7 +254,6 @@ incBCurve = getMeasuredCurve('incB', calibrationCurve)
 benQCurve = getMeasuredCurve('BenQ', calibrationCurve)
 skyCurve = getMeasuredCurve('Sky', calibrationCurve)
 ipadCurve = getMeasuredCurve('iPad', calibrationCurve)
-
 
 #plotCurve(europe1, 'r-', False)
 #plotCurve(europe2, 'b-', False)
