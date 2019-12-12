@@ -4,3 +4,4 @@ images2/*
 imagesRed/*
 out_spectrum/*
 .DS_Store
+__pycache__/*
