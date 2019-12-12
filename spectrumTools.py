@@ -21,6 +21,15 @@ def makeCurveObject(curve, wavelengthRange, yAxisPixelRange, yAxisRatioRange):
 
     return curveObject
 
+def copyCurveObject(curve, basisCurveObject):
+    curveObject = {}
+    curveObject['curve'] = curve
+    curveObject['wavelengthRange'] = basisCurveObject['wavelengthRange']
+    curveObject['yAxisPixelRange'] = basisCurveObject['yAxisPixelRange']
+    curveObject['yAxisRatioRange'] = basisCurveObject['yAxisRatioRange']
+
+    return curveObject
+
 def readCurve(path):
     with open(path, newline='') as csvFile:
         reader = csv.reader(csvFile, delimiter=',')
@@ -196,7 +205,7 @@ def generateCalibrationCurve(groundTruthSunlightCurveObject, measuredSunlightCur
 
     calibrationCurve = np.stack([calibrationCurveX, calibrationCurveY], axis=1)
 
-    return makeCurveObject(calibrationCurve, measuredSunlightCurveObject['wavelengthRange'], measuredSunlightCurveObject['yAxisPixelRange'], measuredSunlightCurveObject['yAxisRatioRange'])
+    return copyCurveObject(calibrationCurve, measuredSunlightCurveObject)
 
 def calibrateCurve(curveObject, calibrationCurveObject):
     calibrationCurve = calibrationCurveObject['curve']
@@ -205,7 +214,7 @@ def calibrateCurve(curveObject, calibrationCurveObject):
     calibratedCurve = np.stack([curve[:, 0], (curve[:, 1] * calibrationCurve[:, 1])], axis=1)
     calibratedCurve[:, 1] /= np.max(calibratedCurve[:, 1])
 
-    return makeCurveObject(calibratedCurve, curveObject['wavelengthRange'], curveObject['yAxisPixelRange'], curveObject['yAxisRatioRange'])
+    return copyCurveObject(calibratedCurve, curveObject)
 
 def combineRGBCurves(rgbCurveObjects):
     redCurveObject, greenCurveObject, blueCurveObject = rgbCurveObjects
@@ -221,7 +230,7 @@ def combineRGBCurves(rgbCurveObjects):
 
     combinedCurve[:, 1] /= maxValue
     
-    return makeCurveObject(combinedCurve, redCurveObject['wavelengthRange'], redCurveObject['yAxisPixelRange'], redCurveObject['yAxisRatioRange'])
+    return copyCurveObject(combinedCurve, redCurveObject)
 
 #def getMeasuredCurve(name, calibrationCurve):
 def getLightSourceCurve(name):

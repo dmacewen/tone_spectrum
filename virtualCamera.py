@@ -36,9 +36,9 @@ def getSensorSensitivity(measuredSunlightRGBCurvesObjects, groundTruthSunlightCu
     blueSensitivity = np.stack([blueMeasuredSunlightCurveObject['curve'][:, 0], blueSensitivityY], axis=1)
 
 
-    redSensitivityCurveObject = spectrumTools.makeCurveObject(redSensitivity, redMeasuredSunlightCurveObject['wavelengthRange'], redMeasuredSunlightCurveObject['yAxisPixelRange'], redMeasuredSunlightCurveObject['yAxisRatioRange'])
-    greenSensitivityCurveObject = spectrumTools.makeCurveObject(greenSensitivity, greenMeasuredSunlightCurveObject['wavelengthRange'], greenMeasuredSunlightCurveObject['yAxisPixelRange'], greenMeasuredSunlightCurveObject['yAxisRatioRange'])
-    blueSensitivityCurveObject = spectrumTools.makeCurveObject(blueSensitivity, blueMeasuredSunlightCurveObject['wavelengthRange'], blueMeasuredSunlightCurveObject['yAxisPixelRange'], blueMeasuredSunlightCurveObject['yAxisRatioRange'])
+    redSensitivityCurveObject = spectrumTools.copyCurveObject(redSensitivity, redMeasuredSunlightCurveObject)
+    greenSensitivityCurveObject = spectrumTools.copyCurveObject(greenSensitivity, greenMeasuredSunlightCurveObject)
+    blueSensitivityCurveObject = spectrumTools.copyCurveObject(blueSensitivity, blueMeasuredSunlightCurveObject)
 
     return [redSensitivityCurveObject, greenSensitivityCurveObject, blueSensitivityCurveObject]
 
@@ -48,8 +48,7 @@ def illuminateSurface(lightSourceCurveObject, surfaceCurveObject):
     surfaceCurve = surfaceCurveObject['curve']
 
     diffuseReflectedCurve = np.stack([lightSourceCurve[:, 0], (lightSourceCurve[:, 1] * surfaceCurve[:, 1])], axis=1)
-
-    diffuseReflectionCurveObject = spectrumTools.makeCurveObject(diffuseReflectedCurve, surfaceCurveObject['wavelengthRange'], surfaceCurveObject['yAxisPixelRange'], surfaceCurveObject['yAxisRatioRange'])
+    diffuseReflectionCurveObject = spectrumTools.copyCurveObject(diffuseReflectedCurve, surfaceCurveObject)
 
     return diffuseReflectionCurveObject
 
@@ -110,11 +109,11 @@ incAEurope = illuminateSurface(incASpectrum, europe1)
 sunEurope = illuminateSurface(sunSpectrum, europe1)
 iPadEurope = illuminateSurface(iPadSpectrum, europe1)
 
-ledEuropeResult = whiteBalance(recordRGBValues(ledEurope, SensorSensitivities['iphoneX']), whiteBalanceMultiplier)
 incAEuropeResult = whiteBalance(recordRGBValues(incAEurope, SensorSensitivities['iphoneX']), whiteBalanceMultiplier)
 sunEuropeResult = whiteBalance(recordRGBValues(sunEurope, SensorSensitivities['iphoneX']), whiteBalanceMultiplier)
 iPadEuropeResult = whiteBalance(recordRGBValues(iPadEurope, SensorSensitivities['iphoneX']), whiteBalanceMultiplier)
 
+ledEuropeResult = whiteBalance(recordRGBValues(ledEurope, SensorSensitivities['iphoneX']), whiteBalanceMultiplier)
 print('LED Europe Result ::\n {}'.format(ledEuropeResult))
 print('IncandecentA Europe Result ::\n {}'.format(incAEuropeResult))
 print('Sun Europe Result ::\n {}'.format(sunEuropeResult))
