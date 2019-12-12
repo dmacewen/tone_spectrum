@@ -223,19 +223,19 @@ def combineRGBCurves(rgbCurveObjects):
     
     return makeCurveObject(combinedCurve, redCurveObject['wavelengthRange'], redCurveObject['yAxisPixelRange'], redCurveObject['yAxisRatioRange'])
 
-def getMeasuredCurve(name, calibrationCurve):
+#def getMeasuredCurve(name, calibrationCurve):
+def getLightSourceCurve(name):
     rgbCurves = getMeasuredCurveObjects(name)
     combinedCurve = combineRGBCurves(rgbCurves)
     calibratedCurve = calibrateCurve(combinedCurve, calibrationCurve)
     return calibratedCurve
 
 groundTruthSunlight = getGroundtruthSunlightCurveObject()
-
 rgbSunCurves = getMeasuredCurveObjects('Sun')
 measuredSunCurve = combineRGBCurves(rgbSunCurves)
 calibrationCurve = generateCalibrationCurve(groundTruthSunlight, measuredSunCurve)
 
-europe1 = getCountryCurveObject('europe1')
+#europe1 = getCountryCurveObject('europe1')
 #europe2 = getCountryCurveObject('europe2')
 #europe3 = getCountryCurveObject('europe3')
 #southAsia1 = getCountryCurveObject('southAsia1')
@@ -248,12 +248,12 @@ europe1 = getCountryCurveObject('europe1')
 #africa2 = getCountryCurveObject('africa2')
 #africa3 = getCountryCurveObject('africa3')
 
-ledCurve = getMeasuredCurve('led', calibrationCurve)
-incACurve = getMeasuredCurve('incA', calibrationCurve)
-incBCurve = getMeasuredCurve('incB', calibrationCurve)
-benQCurve = getMeasuredCurve('BenQ', calibrationCurve)
-skyCurve = getMeasuredCurve('Sky', calibrationCurve)
-ipadCurve = getMeasuredCurve('iPad', calibrationCurve)
+#ledCurve = getLightSourceCurve('led')
+#incACurve = getMeasuredCurve('incA', calibrationCurve)
+#incBCurve = getMeasuredCurve('incB', calibrationCurve)
+#benQCurve = getMeasuredCurve('BenQ', calibrationCurve)
+#skyCurve = getMeasuredCurve('Sky', calibrationCurve)
+#ipadCurve = getMeasuredCurve('iPad', calibrationCurve)
 
 #plotCurve(europe1, 'r-', False)
 #plotCurve(europe2, 'b-', False)
@@ -268,12 +268,12 @@ ipadCurve = getMeasuredCurve('iPad', calibrationCurve)
 #plotCurve(africa2, 'b-', False)
 #plotCurve(africa3, 'g-', False)
 
-plotCurve(groundTruthSunlight, 'y-', False)
-plotCurve(ledCurve, 'b-', False)
-plotCurve(skyCurve, 'b--', False)
-plotCurve(incACurve, 'r-', False)
-plotCurve(incBCurve, 'g-', False)
-plotCurve(ipadCurve, 'k-')
+#plotCurve(groundTruthSunlight, 'y-', False)
+#plotCurve(ledCurve, 'b-')
+#plotCurve(skyCurve, 'b--', False)
+#plotCurve(incACurve, 'r-', False)
+#plotCurve(incBCurve, 'g-', False)
+#plotCurve(ipadCurve, 'k-')
 
 #plotRGBCurves(rgbSunCurves, False)
 #plotCurve(checkCurve, 'r*', False)
