@@ -161,14 +161,9 @@ def getMeasuredCurveObjects(name):
     greenObject = readMeasuredCurves('{}_green'.format(name))
     blueObject = readMeasuredCurves('{}_blue'.format(name))
 
-    print(redObject)
-
     scaledRed = scaleCurve(redObject)
     scaledGreen = scaleCurve(greenObject)
     scaledBlue = scaleCurve(blueObject)
-
-    print(redObject)
-    #print(scaledRed)
 
     quantizedRed = quantizeCurve(scaledRed)
     quantizedGreen = quantizeCurve(scaledGreen)
@@ -244,25 +239,7 @@ rgbSunCurves = getMeasuredCurveObjects('Sun')
 measuredSunCurve = combineRGBCurves(rgbSunCurves)
 calibrationCurve = generateCalibrationCurve(groundTruthSunlight, measuredSunCurve)
 
-#europe1 = getCountryCurveObject('europe1')
-#europe2 = getCountryCurveObject('europe2')
-#europe3 = getCountryCurveObject('europe3')
-#southAsia1 = getCountryCurveObject('southAsia1')
-#southAsia2 = getCountryCurveObject('southAsia2')
-#southAsia3 = getCountryCurveObject('southAsia3')
-#eastAsia1 = getCountryCurveObject('eastAsia1')
-#eastAsia2 = getCountryCurveObject('eastAsia2')
-#eastAsia3 = getCountryCurveObject('eastAsia3')
-#africa1 = getCountryCurveObject('africa1')
-#africa2 = getCountryCurveObject('africa2')
-#africa3 = getCountryCurveObject('africa3')
 
-#ledCurve = getLightSourceCurve('led')
-#incACurve = getMeasuredCurve('incA', calibrationCurve)
-#incBCurve = getMeasuredCurve('incB', calibrationCurve)
-#benQCurve = getMeasuredCurve('BenQ', calibrationCurve)
-#skyCurve = getMeasuredCurve('Sky', calibrationCurve)
-#ipadCurve = getMeasuredCurve('iPad', calibrationCurve)
 
 #plotCurve(europe1, 'r-', False)
 #plotCurve(europe2, 'b-', False)
