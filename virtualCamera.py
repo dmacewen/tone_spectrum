@@ -1,5 +1,6 @@
 import numpy as np
 import spectrumTools
+import colorSpaceTools
 import copy
 from pprint import pprint
 import matplotlib.pyplot as plt
@@ -100,6 +101,10 @@ def exposeSurfaceToAllLights(surface, sensor):
     results['sunResult'] = whiteBalance(recordRGBValues(sunReflection, sensor), whiteBalanceMultiplier)
     results['iPadResult'] = whiteBalance(recordRGBValues(iPadReflection, sensor), whiteBalanceMultiplier)
 
+    iPadRGB = np.array(results['iPadResult']) / 255
+    iPadXYZ = colorSpaceTools.rgb_to_xyz(iPadRGB)
+    iPadLAB = colorSpaceTools.xyz_to_lab(iPadXYZ)
+    print('Ipad RGB -> XYZ -> LAB| {} -> {} -> {}'.format(iPadRGB, iPadXYZ, iPadLAB))
     return results
 
 print('----- Europe 1 ----')

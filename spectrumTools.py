@@ -89,7 +89,7 @@ def quantizeCurve(curveObject):
 
     return curveObject
 
-#Smooth after scaling! 
+#Smooth after scaling!
 def smoothCurve(curveObject):
     curve = curveObject['curve']
     y = savgol_filter(curve[:, 1], 15, 3)
@@ -224,7 +224,7 @@ def combineRGBCurves(rgbCurveObjects):
     maxValue = max(combinedCurve[:, 1])
 
     combinedCurve[:, 1] /= maxValue
-    
+
     return copyCurveObject(combinedCurve, redCurveObject)
 
 #def getMeasuredCurve(name, calibrationCurve):
