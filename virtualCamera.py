@@ -77,7 +77,13 @@ def recordRGBValues(spectrumObject, rgbSensitivityCurveObjects):
 
 def whiteBalance(rgbValues, whiteBalanceMultiplier):
     balanced = rgbValues * whiteBalanceMultiplier
-    return list(np.round(balanced / max(balanced) * 255).astype('uint8'))
+    return balanced / max(balanced)
+
+def cleanRGBTriplet(rgb):
+    return list(np.floor(rgb * 255).astype('uint8'))
+
+def cleanLABTriplet(lab):
+    return list(lab)
 
 SensorSensitivities['iphoneX'] = getSensorSensitivity(spectrumTools.rgbSunCurves, spectrumTools.groundTruthSunlight)
 
@@ -89,22 +95,21 @@ iPadSpectrum = spectrumTools.getLightSourceCurve(LightSources['iPad'])
 whitePoint = recordRGBValues(sunSpectrum, SensorSensitivities['iphoneX'])
 whiteBalanceMultiplier = 1 / (whitePoint / max(whitePoint))
 
+def exposeSurfaceToLight(surface, sensor, incedentLight):
+    reflection = illuminateSurface(incedentLight, surface)
+    rgbTriplet = recordRGBValues(reflection, sensor)
+    wbRGBTriplet = whiteBalance(rgbTriplet, whiteBalanceMultiplier)
+    lab = colorSpaceTools.rgb_to_lab(wbRGBTriplet)
+    #print('{} -> {}'.format(list(wbRGBTriplet), list(lab)))
+    return cleanLABTriplet(lab)
+
+
 def exposeSurfaceToAllLights(surface, sensor):
-    ledReflection = illuminateSurface(ledSpectrum, surface)
-    incAReflection = illuminateSurface(incASpectrum, surface)
-    sunReflection = illuminateSurface(sunSpectrum, surface)
-    iPadReflection = illuminateSurface(iPadSpectrum, surface)
-
     results = {}
-    results['ledResult'] = whiteBalance(recordRGBValues(ledReflection, sensor), whiteBalanceMultiplier)
-    results['incAResult'] = whiteBalance(recordRGBValues(incAReflection, sensor), whiteBalanceMultiplier)
-    results['sunResult'] = whiteBalance(recordRGBValues(sunReflection, sensor), whiteBalanceMultiplier)
-    results['iPadResult'] = whiteBalance(recordRGBValues(iPadReflection, sensor), whiteBalanceMultiplier)
-
-    iPadRGB = np.array(results['iPadResult']) / 255
-    iPadXYZ = colorSpaceTools.rgb_to_xyz(iPadRGB)
-    iPadLAB = colorSpaceTools.xyz_to_lab(iPadXYZ)
-    print('Ipad RGB -> XYZ -> LAB| {} -> {} -> {}'.format(iPadRGB, iPadXYZ, iPadLAB))
+    results['ledResult'] = exposeSurfaceToLight(ledSpectrum, sensor, surface)
+    results['incAResult'] = exposeSurfaceToLight(incASpectrum, sensor, surface)
+    results['sunResult'] = exposeSurfaceToLight(sunSpectrum, sensor, surface)
+    results['iPadResult'] = exposeSurfaceToLight(iPadSpectrum, sensor, surface) 
     return results
 
 print('----- Europe 1 ----')

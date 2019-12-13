@@ -28,3 +28,7 @@ def xyz_to_lab(xyz):
 
     return np.array([L, a, b])
 
+def rgb_to_lab(rgb):
+    xyz = rgb_to_xyz(rgb)
+    return xyz_to_lab(xyz)
+
