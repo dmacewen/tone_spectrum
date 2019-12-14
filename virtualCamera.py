@@ -106,11 +106,29 @@ def exposeSurfaceToLight(surface, sensor, incedentLight):
 
 def exposeSurfaceToAllLights(surface, sensor):
     results = {}
-    results['ledResult'] = exposeSurfaceToLight(ledSpectrum, sensor, surface)
-    results['incAResult'] = exposeSurfaceToLight(incASpectrum, sensor, surface)
-    results['sunResult'] = exposeSurfaceToLight(sunSpectrum, sensor, surface)
-    results['iPadResult'] = exposeSurfaceToLight(iPadSpectrum, sensor, surface) 
+    results['led'] = exposeSurfaceToLight(ledSpectrum, sensor, surface)
+    results['incA'] = exposeSurfaceToLight(incASpectrum, sensor, surface)
+    results['sun'] = exposeSurfaceToLight(sunSpectrum, sensor, surface)
+    results['iPad'] = exposeSurfaceToLight(iPadSpectrum, sensor, surface) 
     return results
+
+def calcualteDistance(lab1, lab2):
+    labDiff = np.array(lab2) - np.array(lab1)
+    return np.sqrt(np.sum(labDiff * labDiff))
+
+def compareLightSources(surface1, surface2, lightSource1, lightSource2):
+    s1_s2_l1 = calcualteDistance(surface1[lightSource1], surface2[lightSource1])
+    s1_s2_l2 = calcualteDistance(surface1[lightSource2], surface2[lightSource2])
+    return [s1_s2_l1, s1_s2_l2]
+
+def regionalComparison(surface1, surface2, surface3, lightSource1, lightSource2):
+    s1s2 = compareLightSources(surface1, surface2, lightSource1, lightSource2)
+    s2s3 = compareLightSources(surface2, surface3, lightSource1, lightSource2)
+    s1s3 = compareLightSources(surface1, surface3, lightSource1, lightSource2)
+
+    print('S1 vs S2 | iPad vs Sun :: {} vs {}'.format(*s1s2))
+    print('S2 vs S3 | iPad vs Sun :: {} vs {}'.format(*s2s3))
+    print('S1 vs S3 | iPad vs Sun :: {} vs {}'.format(*s1s3))
 
 print('----- Europe 1 ----')
 europe1 = spectrumTools.getCountryCurveObject(Surfaces['europe'][0])
@@ -171,3 +189,15 @@ print('----- Africa 3 ----')
 africa3 = spectrumTools.getCountryCurveObject(Surfaces['africa'][2])
 africa3Results = exposeSurfaceToAllLights(africa3, SensorSensitivities['iphoneX'])
 pprint(africa3Results)
+
+print('------\n------')
+
+print('EUROPE')
+regionalComparison(europe1Results, europe2Results, europe3Results, 'iPad', 'sun')
+print('EAST ASIA')
+regionalComparison(eastAsia1Results, eastAsia2Results, eastAsia3Results, 'iPad', 'sun')
+print('SOUTH ASIA')
+regionalComparison(southAsia1Results, southAsia2Results, southAsia3Results, 'iPad', 'sun')
+print('AFRICA')
+regionalComparison(africa1Results, africa2Results, africa3Results, 'iPad', 'sun')
+
