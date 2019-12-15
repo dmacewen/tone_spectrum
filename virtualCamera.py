@@ -23,6 +23,7 @@ Surfaces['eastAsia'] = ['eastAsia1','eastAsia2','eastAsia3']
 Surfaces['africa'] = ['africa1','africa2','africa3']
 
 SensorSensitivities = {}
+SensorSensitivities['humanEye'] = spectrumTools.getEyeCurveObjects()
 
 def getSensorSensitivity(measuredSunlightRGBCurvesObjects, groundTruthSunlightCurveObject):
     groundTruthCorrectionArray = (1 / groundTruthSunlightCurveObject['curve'][:, 1])
@@ -79,6 +80,9 @@ def whiteBalance(rgbValues, whiteBalanceMultiplier):
     balanced = rgbValues * whiteBalanceMultiplier
     return balanced / max(balanced)
 
+def scaleToMax(rgbValues):
+    return rgbValues / max(rgbValues)
+
 def cleanRGBTriplet(rgb):
     return list(np.floor(rgb * 255).astype('uint8'))
 
@@ -92,15 +96,18 @@ incASpectrum = spectrumTools.getLightSourceCurve(LightSources['IncandecentA'])
 sunSpectrum = spectrumTools.getLightSourceCurve(LightSources['Sun'])
 iPadSpectrum = spectrumTools.getLightSourceCurve(LightSources['iPad'])
 
-whitePoint = recordRGBValues(sunSpectrum, SensorSensitivities['iphoneX'])
+whitePointIPhone = recordRGBValues(sunSpectrum, SensorSensitivities['iphoneX'])
+whitePointEye = recordRGBValues(sunSpectrum, SensorSensitivities['humanEye'])
 whiteBalanceMultiplier = 1 / (whitePoint / max(whitePoint))
 
 def exposeSurfaceToLight(surface, sensor, incedentLight):
     reflection = illuminateSurface(incedentLight, surface)
     rgbTriplet = recordRGBValues(reflection, sensor)
     wbRGBTriplet = whiteBalance(rgbTriplet, whiteBalanceMultiplier)
+    #scaledRGBTriplet = scaleToMax(rgbTriplet)
+
     lab = colorSpaceTools.rgb_to_lab(wbRGBTriplet)
-    #print('{} -> {}'.format(list(wbRGBTriplet), list(lab)))
+    #lab = colorSpaceTools.rgb_to_lab(scaledRGBTriplet)
     return cleanLABTriplet(lab)
 
 
@@ -132,7 +139,8 @@ def regionalComparison(surface1, surface2, surface3, lightSource1, lightSource2)
 
 print('----- Europe 1 ----')
 europe1 = spectrumTools.getCountryCurveObject(Surfaces['europe'][0])
-europe1Results = exposeSurfaceToAllLights(europe1, SensorSensitivities['iphoneX'])
+#europe1Results = exposeSurfaceToAllLights(europe1, SensorSensitivities['iphoneX'])
+#europe1Results = exposeSurfaceToAllLights(europe1, SensorSensitivities['humanEye'])
 pprint(europe1Results)
 
 print('----- Europe 2 ----')

@@ -156,6 +156,30 @@ def getCountryCurveObject(name):
     cropped = cropCurve(smoothed)
     return cropped
 
+def getEyeCurveObjects():
+    redEyeCurve = readTracedCurves('eyeSensitivityRed')
+    greenEyeCurve = readTracedCurves('eyeSensitivityGreen')
+    blueEyeCurve = readTracedCurves('eyeSensitivityBlue')
+
+    #correctedOrientation = invertCurve(countryObject)
+    scaledRedEyeCurve = scaleCurve(redEyeCurve)
+    scaledGreenEyeCurve = scaleCurve(greenEyeCurve)
+    scaledBlueEyeCurve = scaleCurve(blueEyeCurve)
+
+    quantizedRedEyeCurve = quantizeCurve(scaledRedEyeCurve)
+    quantizedGreenEyeCurve = quantizeCurve(scaledGreenEyeCurve)
+    quantizedBlueEyeCurve = quantizeCurve(scaledBlueEyeCurve)
+
+    smoothedRedEyeCurve  = smoothCurve(quantizedRedEyeCurve)
+    smoothedGreenEyeCurve = smoothCurve(quantizedGreenEyeCurve)
+    smoothedBlueEyeCurve = smoothCurve(quantizedBlueEyeCurve)
+
+    croppedRedEyeCurve = cropCurve(smoothedRedEyeCurve)
+    croppedGreenEyeCurve = cropCurve(smoothedGreenEyeCurve)
+    croppedBlueEyeCurve = cropCurve(smoothedBlueEyeCurve)
+
+    return [croppedRedEyeCurve, croppedGreenEyeCurve, croppedBlueEyeCurve]
+
 def getMeasuredCurveObjects(name):
     redObject = readMeasuredCurves('{}_red'.format(name))
     greenObject = readMeasuredCurves('{}_green'.format(name))
