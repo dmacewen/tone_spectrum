@@ -107,11 +107,13 @@ SensorSensitivities['humanEye']['whiteBalanceMultiplier'] = 1 / (SensorSensitivi
 def exposeSurfaceToLight(surface, sensor, incedentLight):
     reflection = illuminateSurface(incedentLight, surface)
     rgbTriplet = recordRGBValues(reflection, sensor['curves'])
-    wbRGBTriplet = whiteBalance(rgbTriplet, sensor['whiteBalanceMultiplier'])
+    print('RGB Triplet :: {}'.format(rgbTriplet))
+    #wbRGBTriplet = whiteBalance(rgbTriplet, sensor['whiteBalanceMultiplier'])
     #scaledRGBTriplet = scaleToMax(rgbTriplet)
 
-    lab = colorSpaceTools.rgb_to_lab(wbRGBTriplet)
-    #lab = colorSpaceTools.rgb_to_lab(scaledRGBTriplet)
+    #lab = colorSpaceTools.rgb_to_lab(wbRGBTriplet)
+    lab = colorSpaceTools.rgb_to_lab(rgbTriplet)
+    print('LAB Triplet :: {}'.format(rgbTriplet))
     return cleanLABTriplet(lab)
 
 
@@ -123,13 +125,13 @@ def exposeSurfaceToAllLights(surface, sensor):
     results['iPad'] = exposeSurfaceToLight(iPadSpectrum, sensor, surface) 
     return results
 
-def calcualteDistance(lab1, lab2):
+def calculateDistance(lab1, lab2):
     labDiff = np.array(lab2) - np.array(lab1)
     return np.sqrt(np.sum(labDiff * labDiff))
 
 def compareLightSources(surface1, surface2, lightSource1, lightSource2):
-    s1_s2_l1 = calcualteDistance(surface1[lightSource1], surface2[lightSource1])
-    s1_s2_l2 = calcualteDistance(surface1[lightSource2], surface2[lightSource2])
+    s1_s2_l1 = calculateDistance(surface1[lightSource1], surface2[lightSource1])
+    s1_s2_l2 = calculateDistance(surface1[lightSource2], surface2[lightSource2])
     return [s1_s2_l1, s1_s2_l2]
 
 def regionalComparison(surface1, surface2, surface3, lightSource1, lightSource2):
@@ -137,9 +139,9 @@ def regionalComparison(surface1, surface2, surface3, lightSource1, lightSource2)
     s2s3 = compareLightSources(surface2, surface3, lightSource1, lightSource2)
     s1s3 = compareLightSources(surface1, surface3, lightSource1, lightSource2)
 
-    print('S1 vs S2 | iPad vs Sun :: {} vs {}'.format(*s1s2))
-    print('S2 vs S3 | iPad vs Sun :: {} vs {}'.format(*s2s3))
-    print('S1 vs S3 | iPad vs Sun :: {} vs {}'.format(*s1s3))
+    print('S1 vs S2 | iPad vs Sun :: {} vs {} | {}'.format(*s1s2, s1s2[0] - s1s2[1]))
+    print('S2 vs S3 | iPad vs Sun :: {} vs {} | {}'.format(*s2s3, s2s3[0] - s2s3[1]))
+    print('S1 vs S3 | iPad vs Sun :: {} vs {} | {}'.format(*s1s3, s1s3[0] - s1s3[1]))
 
 print('----- Europe 1 ----')
 europe1 = spectrumTools.getCountryCurveObject(Surfaces['europe'][0])

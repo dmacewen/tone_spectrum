@@ -10,21 +10,28 @@ def rgb_to_xyz(rgb):
 epsilon = 216 / 24389
 kappa = 24389 / 27
 #2 degree observer
-d65_xyz = np.array([0.31271, 0.32902, 0.35827])
+#d65_xyz = np.array([0.31271, 0.32902, 0.35827])
+#Found direct Source. My adaptation was correct, but better just to use a constant
+d65_XYZ = np.array([0.95047, 1.0, 1.08883])
 
-def xyz_to_lab(xyz):
+X = 0
+Y = 1
+Z = 2
+
+def xyz_to_lab(XYZ):
     #Set d65 to y = 1
-    d65_xyz_scale = 1 / d65_xyz[1]
-    xyz_scaled = xyz / (d65_xyz * d65_xyz_scale)
+    #d65_xyz_scale = 1 / d65_xyz[1]
+    #xyz_scaled = xyz / (d65_xyz * d65_xyz_scale)
+    xyz_scaled = XYZ / d65_XYZ
 
     epsilon_mask = xyz_scaled > epsilon
 
     xyz_processed = ((xyz_scaled * kappa) + 16) / 116
     xyz_processed[epsilon_mask] = np.cbrt(xyz_scaled)[epsilon_mask]
 
-    L = (116 * xyz_processed[1]) - 16
-    a = (xyz_processed[0] - xyz_processed[1]) * 500
-    b = (xyz_processed[1] - xyz_processed[2]) * 200
+    L = (116 * xyz_processed[Y]) - 16
+    a = (xyz_processed[X] - xyz_processed[Y]) * 500
+    b = (xyz_processed[Y] - xyz_processed[Z]) * 200
 
     return np.array([L, a, b])
 
