@@ -25,4 +25,4 @@ While beta testing Tone, I was noticing that I was not able to achieve the accur
 
 Wikipedia explains metamerism well: metamerism is a perceived matching of colors with different (nonmatching) spectral power distributions. This makes it hard or impossible to compare two different colors in some lighting conditions. This is actually a concept that I suspect shows up in the broader makeup industry. Many makeup users report their fustration of having foundation makeup match in the store, but not match when outside. Artifical light sources often do no emit a uniform spectrum of light. In a similar vein, phone screens also do not emit a uniform spectrum of light.
 
-![wikipedia_spectral_power_distriputions](https://en.wikipedia.org/wiki/Spectral_power_distribution#/media/File:Spectral_Power_Distributions.png)
+![wikipedia_spectral_power_distriputions](/svg/blood_spectrum.png)
