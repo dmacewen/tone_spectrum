@@ -1,6 +1,6 @@
 # Exploration into Perception of Color and Metamerism
 
-## WIP - May be commiting to test how Github renders markdown
+## WIP - commiting to test how Github renders markdown
 
 ## Tone Overview
 Tone is a project that aims to address the challenge of getting an accurate foundation makeup match. The current best method for getting accurately matching foundation makeup is to go to a brick and mortar store and try on different shades. Making matters worse, skin tone and skin needs change throughout the year for many people which means the user will often need to go back to the store if their skin changes. 
@@ -25,6 +25,4 @@ While beta testing Tone, I was noticing that I was not able to achieve the accur
 
 Wikipedia explains metamerism well: metamerism is a perceived matching of colors with different (nonmatching) spectral power distributions. This makes it hard or impossible to compare two different colors in some lighting conditions. This is actually a concept that I suspect shows up in the broader makeup industry. Many makeup users report their fustration of having foundation makeup match in the store, but not match when outside. Artifical light sources often do no emit a uniform spectrum of light. In a similar vein, phone screens also do not emit a uniform spectrum of light.
 
-[comparison of light source spectral power distributions][wikipedia_spectral_power_distriputions]
-
-[wikipedia_spectral_power_distriputions]: https://en.wikipedia.org/wiki/Spectral_power_distribution#/media/File:Spectral_Power_Distributions.png
+![wikipedia_spectral_power_distriputions](https://en.wikipedia.org/wiki/Spectral_power_distribution#/media/File:Spectral_Power_Distributions.png)
