@@ -42,7 +42,8 @@ def readCurve(path):
         Row 3+: [wavelength, y value]
     """
     with open(path, newline='') as csvFile:
-        rawFilePairs = csv.reader(csvFile, delimiter=',')
+        reader = csv.reader(csvFile, delimiter=',')
+        rawFilePairs = [pair for pair in reader]
 
         wavelengthRange = [int(num) for num in rawFilePairs[0]]
         yAxisPixelRange = [int(num) for num in rawFilePairs[1]]

@@ -1,21 +1,23 @@
+"""
+Converts raw images taken through a spectroscope into R, G, and B spectral sensativity curves
+Intended to be run as a script
+"""
 import cv2
 import rawpy
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.signal import savgol_filter
-import math
-
 import spectrumTools
 
+#[Image Name, Threshold (can be manually tweaked. helps with processing), [Start Wavelength, End Wavelength]]
 skyImg = ['sky', 0.5, [385, 725]]
 sunImg = ['sunlightDim', 0.08, [385, 725]]
 benQImg = ['BenQ2', 0.1, [385, 725]]
-iPadImg = ['iPad', 0.3, [385, 725]] 
+iPadImg = ['iPad', 0.3, [385, 725]]
 incadecentAImg = ['IncadecentA_card', 0.5, [385, 725]]
 incadecentBImg = ['IncadecentB_card', 0.5, [385, 725]]
-ledImg = ['LED_card' , 0.5, [385, 725]]
+ledImg = ['LED_card', 0.5, [385, 725]]
 
 def stretch(img, mask=None):
+    """Stretch the image to enhance contrast"""
     mask = mask if mask is not None else np.ones(img.shape, dtype='bool')
     minVal = np.min(img[mask])
     maxVal = np.max(img[mask])
@@ -23,9 +25,10 @@ def stretch(img, mask=None):
     magnitude = maxVal - minVal
     stretched = (img - minVal) / magnitude
     stretched[np.logical_not(mask)] = 0
-    return stretched#, magnitude
+    return stretched
 
-def autoBB(img, threshold, redMask, greenMask, blueMask):
+def autoBB(img, threshold):
+    """Return the BB for the wavelength numbers and for the spectrum"""
     scaled = stretch(img)
 
     brightSubpixelMask = scaled > threshold
@@ -34,58 +37,42 @@ def autoBB(img, threshold, redMask, greenMask, blueMask):
     morphologyKernel = np.ones((21, 21), np.uint8)
     dilated = cv2.dilate(brightSubpixelMask, morphologyKernel, iterations=1)
 
-    contours, heirarchy = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     areas = [cv2.contourArea(contour) for contour in contours]
     largestContour = np.argmax(areas)
 
     numbersBB = cv2.boundingRect(contours[largestContour])
-    #spectrumBB = numbersBB + np.array([0, int(1.5 * numbersBB[3]), 0, 0)]) #Just offset the numberline by 2 times its height. Samples roughly the middle of the spectrum area
     spectrumBB = numbersBB + np.array([0, int(1 * numbersBB[3]), 0, int(-0.5 * numbersBB[3])]) #Just offset the numberline by 2 times its height. Samples roughly the middle of the spectrum area
 
     return [numbersBB, spectrumBB]
 
-def extractSpectrum(spectrum, mask, stretch=True):
+def extractSpectrum(spectrum, mask):
+    """
+    Takes a image of just the spectroscope spectrum and a mask defining which color pixels to extract
+        returns both the masked spectrum image and the median of each column of pixels. Each column should correlate with a certain wavlength range (to be calculated later)
+    """
     img = np.copy(spectrum)
-    if stretch:
-        img = stretch(img, mask)
-    else:
-        img[np.logical_not(mask)] = 0
+    img[np.logical_not(mask)] = 0
+
     rowMask = np.any(img.T, axis=0)
     medians = np.median(img.T[:, rowMask], axis=1)
     medians = medians[medians > 0]
     return [img, medians]
 
-
-def amplify(img):
-    std = np.std(img)
-    median = np.median(img)
-    floor = median + (0.5 * std)
-    img[img > floor] = 1
-    return img
-
-def loadRawImage(filename):
-    with rawpy.imread('imagesRed/{}.DNG'.format(imgFileName)) as raw:
-        imgDim = raw.raw_image.shape
-
-        img = raw.raw_image
-        colors = raw.raw_colors
-
-
 #Crop is [[Y, X], [Height, Width], HeightRatio]
 def extractSpectrums(imgFileName, threshold, wavelengthRange):#, crop=None):
+    """Extracts the spectrum and returns an object containing the wavelength number image, each color channel image, each color channel medians, and the wavelength range"""
     with rawpy.imread('images/imagesRed/{}.DNG'.format(imgFileName)) as raw:
         imgDim = raw.raw_image.shape
 
         img = raw.raw_image
         colors = raw.raw_colors
 
-    
     redMask = colors == 0
-    #greenMask = np.logical_or((raw.raw_colors == 1), (raw.raw_colors == 3))
     greenMask = colors == 1
     blueMask = colors == 2
-        
-    numbersBB, spectrumBB = autoBB(img, threshold, redMask, greenMask, blueMask)
+
+    numbersBB, spectrumBB = autoBB(img, threshold)
 
     numbers = np.copy(img[numbersBB[1]:(numbersBB[1] + numbersBB[3]), numbersBB[0]:(numbersBB[0] + numbersBB[2])])
     spectrum = np.copy(img[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])])
@@ -96,85 +83,15 @@ def extractSpectrums(imgFileName, threshold, wavelengthRange):#, crop=None):
     greenMask = greenMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
     blueMask = blueMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
 
-    #if crop is None:
-    #    numbersBB, spectrumBB = autocrop(img, threshold, redMask, greenMask, blueMask)
-
-    #    numbers = np.copy(img[numbersBB[1]:(numbersBB[1] + numbersBB[3]), numbersBB[0]:(numbersBB[0] + numbersBB[2])])
-    #    spectrum = np.copy(img[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])])
-
-    #    numbersRedMask = redMask[numbersBB[1]:(numbersBB[1] + numbersBB[3]), numbersBB[0]:(numbersBB[0] + numbersBB[2])]
-
-    #    redMask = redMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
-    #    greenMask = greenMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
-    #    blueMask = blueMask[spectrumBB[1]:(spectrumBB[1] + spectrumBB[3]), spectrumBB[0]:(spectrumBB[0] + spectrumBB[2])]
-
-    #else:
-
-    #    print('crop :: {}'.format(crop))
-    #    print('dim :: {}'.format(imgDim))
-    #    height, width = imgDim
-
-    #    numbersBB = np.round(np.array(crop[0:2]) * np.array([height, width])).astype('int32')
-    #    print('Numbers BB :: {}'.format(numbersBB))
-
-    #    spectrumY = np.round(numbersBB[0, 0] + numbersBB[1, 0])
-    #    print('Spectrum Y :: {}'.format(spectrumY))
-
-    #    spectrumHeight = np.round(numbersBB[1, 0] * crop[2])
-    #    print('Spectrum Height :: {}'.format(spectrumHeight))
-
-    #    spectrumBB = np.array([[spectrumY, numbersBB[0, 1]], [spectrumHeight, numbersBB[1][1]]]).astype('int32')
-    #    print('Spectrum BB :: {}'.format(spectrumBB))
-
-    #    numbersBB = numbersBB.flatten()
-    #    spectrumBB = spectrumBB.flatten()
-
-    #    numbers = np.copy(img[numbersBB[0]:(numbersBB[0] + numbersBB[2]), numbersBB[1]:(numbersBB[1] + numbersBB[3])])
-    #    spectrum = np.copy(img[spectrumBB[0]:(spectrumBB[0] + spectrumBB[2]), spectrumBB[1]:(spectrumBB[1] + spectrumBB[3])])
-
-    #    numbersRedMask = redMask[numbersBB[0]:(numbersBB[0] + numbersBB[2]), numbersBB[1]:(numbersBB[1] + numbersBB[3])]
-
-    #    redMask = redMask[spectrumBB[0]:(spectrumBB[0] + spectrumBB[2]), spectrumBB[1]:(spectrumBB[1] + spectrumBB[3])]
-    #    greenMask = greenMask[spectrumBB[0]:(spectrumBB[0] + spectrumBB[2]), spectrumBB[1]:(spectrumBB[1] + spectrumBB[3])]
-    #    blueMask = blueMask[spectrumBB[0]:(spectrumBB[0] + spectrumBB[2]), spectrumBB[1]:(spectrumBB[1] + spectrumBB[3])]
-
-
-
-    #numbersBB, spectrumBB = autocrop(img, threshold, redMask, greenMask, blueMask)
     print('Numbers Size :: {}'.format(numbersBB))
     print('Specturm Size :: {}'.format(spectrumBB))
 
-
-    #numbers = stretch(numbers)
-    #spectrum = stretch(spectrum)
-    #cv2.imshow('numbers', numbers)
-    #cv2.imshow('spectrum', spectrum)
-    #cv2.waitKey(0)
-
-    #numbers = stretch(numbers)
-    #divide = np.ones([1, numbers.shape[1]])
-    #stacked = np.vstack([numbers, divide, spectrum])
-
-    #cv2.imshow('check', stretch(stacked))
-    #cv2.waitKey(0)
-
-
     numbers = stretch(numbers, numbersRedMask)
-
-
     stretched = stretch(spectrum)
 
-    #redImg, redMagnitude, redMedians = extractSpectrum(spectrum, redMask, False)
-    redImg, redMedians = extractSpectrum(stretched, redMask, False)
-    #print('Red Magnitude :: {}'.format(redMagnitude))
-
-    #greenImg, greenMagnitude, greenMedians = extractSpectrum(spectrum, greenMask, False)
-    greenImg, greenMedians = extractSpectrum(stretched, greenMask, False)
-    #print('Green Magnitude :: {}'.format(greenMagnitude))
-
-    #blueImg, blueMagnitude, blueMedians = extractSpectrum(spectrum, blueMask, False)
-    blueImg, blueMedians = extractSpectrum(stretched, blueMask, False)
-    #print('Blue Magnitude :: {}'.format(blueMagnitude))
+    redImg, redMedians = extractSpectrum(stretched, redMask)
+    greenImg, greenMedians = extractSpectrum(stretched, greenMask)
+    blueImg, blueMedians = extractSpectrum(stretched, blueMask)
 
     lenRed = len(redMedians)
     lenGreen = len(greenMedians)
@@ -191,15 +108,17 @@ def extractSpectrums(imgFileName, threshold, wavelengthRange):#, crop=None):
     return [numbers, [redImg, redMedians], [greenImg, greenMedians], [blueImg, blueMedians], wavelengthRange]
 
 def showSpectrum(imageSpectrumObject, name, wait=True):
-    numbers, red, green, blue, wavelengthRange = imageSpectrumObject
-    
+    """Show the spectrum that extractSpectrums returns. Breaks the spectrums out by RGB"""
+    numbers, red, green, blue, _ = imageSpectrumObject
+
     stacked = np.vstack([numbers, red[0], green[0], blue[0]])
     cv2.imshow('RGB {}'.format(name), stacked)
     if wait:
         cv2.waitKey(0)
 
-def saveCurve(imageSpectrumObject, name):
-    numbers, red, green, blue, wavelengthRange = imageSpectrumObject
+def getCurves(imageSpectrumObject):
+    """Takes the output of extract spectrums and returns the RGB curve object"""
+    _, red, green, blue, wavelengthRange = imageSpectrumObject
 
     redX = np.linspace(wavelengthRange[0], wavelengthRange[1], len(red[1]))
     greenX = np.linspace(wavelengthRange[0], wavelengthRange[1], len(green[1]))
@@ -213,38 +132,54 @@ def saveCurve(imageSpectrumObject, name):
     greenCurveObject = spectrumTools.makeCurveObject(greenCurve, wavelengthRange, [0, 1], [0, 1])
     blueCurveObject = spectrumTools.makeCurveObject(blueCurve, wavelengthRange, [0, 1], [0, 1])
 
-    spectrumTools.writeMeasuredCurve('{}_red'.format(name), redCurveObject)
-    spectrumTools.writeMeasuredCurve('{}_green'.format(name), greenCurveObject)
-    spectrumTools.writeMeasuredCurve('{}_blue'.format(name), blueCurveObject)
+    return [redCurveObject, greenCurveObject, blueCurveObject]
 
 
+def saveCurves(rgbSpectrumList, name):
+    """Saves the RGB curve object"""
+    spectrumTools.writeMeasuredCurve('{}_red'.format(name), rgbSpectrumList[0])
+    spectrumTools.writeMeasuredCurve('{}_green'.format(name), rgbSpectrumList[1])
+    spectrumTools.writeMeasuredCurve('{}_blue'.format(name), rgbSpectrumList[2])
 
-#CHECK WAVELENGTH RANGE VALUES 
 
-#led = extractSpectrums(*ledImg)
-#saveCurve(led, 'led')
-#showSpectrum(led, 'led')
+led = extractSpectrums(*ledImg)
+ledCurves = getCurves(led)
+spectrumTools.plotRGBCurves(ledCurves)
+#saveCurves(ledCurves, 'led')
+showSpectrum(led, 'led')
 
 #incA = extractSpectrums(*incadecentAImg)
-#saveCurve(incA, 'IncA')
-#showSpectrum(incA, 'Inc A')
+#incACurves = getCurves(incA)
+#spectrumTools.plotRGBCurves(incACurves)
+#saveCurves(incACurves, 'incA')
+#showSpectrum(incA, 'incA')
 
 #incB = extractSpectrums(*incadecentBImg)
-#saveCurve(incB, 'IncB')
-#showSpectrum(incB, 'Inc B')
+#incBCurves = getCurves(incB)
+#spectrumTools.plotRGBCurves(incBCurves)
+#saveCurves(incBCurves, 'incB')
+#showSpectrum(incB, 'incB')
 
 #sky = extractSpectrums(*skyImg)
-#saveCurve(sky, 'Sky')
-#showSpectrum(sky, 'Sky')
+#skyCurves = getCurves(sky)
+#spectrumTools.plotRGBCurves(skyCurves)
+#saveCurves(skyCurves, 'sky')
+#showSpectrum(sky, 'sky')
 
 #sun = extractSpectrums(*sunImg)
-#saveCurve(sun, 'Sun')
-#showSpectrum(sun, 'Sun')
+#sunCurves = getCurves(sun)
+#spectrumTools.plotRGBCurves(sunCurves)
+#saveCurves(sunCurves, 'sun')
+#showSpectrum(sun, 'sun')
 
 #benQ = extractSpectrums(*benQImg)
-#saveCurve(benQ, 'BenQ')
-#showSpectrum(benQ, 'BenQ')
+#benQCurves = getCurves(benQ)
+#spectrumTools.plotRGBCurves(benQCurves)
+#saveCurves(benQCurves, 'benQ')
+#showSpectrum(benQ, 'benQ')
 
 #iPad = extractSpectrums(*iPadImg)
-#saveCurve(iPad, 'iPad')
+#iPadCurves = getCurves(iPad)
+#spectrumTools.plotRGBCurves(iPadCurves)
+#saveCurves(iPadCurves, 'iPad')
 #showSpectrum(iPad, 'iPad')
