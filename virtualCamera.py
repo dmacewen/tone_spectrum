@@ -33,7 +33,6 @@ def getSensorSensitivity(measuredSunlightRGBCurvesObjects, groundTruthSunlightCu
     Returns the calibrated RGB sensor spectral sensetivities
         Takes RGB spectral sensitivites of a sensor, captured for sunlight and the ground truth sunlight curve
         and the ground truth sunlight spectral emission curve
-        
     """
 
     #We have:

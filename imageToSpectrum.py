@@ -63,8 +63,6 @@ def extractSpectrum(spectrum, mask):
 def extractSpectrums(imgFileName, threshold, wavelengthRange):#, crop=None):
     """Extracts the spectrum and returns an object containing the wavelength number image, each color channel image, each color channel medians, and the wavelength range"""
     with rawpy.imread('images/imagesRed/{}.DNG'.format(imgFileName)) as raw:
-        imgDim = raw.raw_image.shape
-
         img = raw.raw_image
         colors = raw.raw_colors
 
@@ -142,11 +140,11 @@ def saveCurves(rgbSpectrumList, name):
     spectrumTools.writeMeasuredCurve('{}_blue'.format(name), rgbSpectrumList[2])
 
 
-led = extractSpectrums(*ledImg)
-ledCurves = getCurves(led)
-spectrumTools.plotRGBCurves(ledCurves)
+#led = extractSpectrums(*ledImg)
+#ledCurves = getCurves(led)
+#spectrumTools.plotRGBCurves(ledCurves)
 #saveCurves(ledCurves, 'led')
-showSpectrum(led, 'led')
+#showSpectrum(led, 'led')
 
 #incA = extractSpectrums(*incadecentAImg)
 #incACurves = getCurves(incA)
@@ -166,11 +164,11 @@ showSpectrum(led, 'led')
 #saveCurves(skyCurves, 'sky')
 #showSpectrum(sky, 'sky')
 
-#sun = extractSpectrums(*sunImg)
-#sunCurves = getCurves(sun)
-#spectrumTools.plotRGBCurves(sunCurves)
+sun = extractSpectrums(*sunImg)
+sunCurves = getCurves(sun)
+spectrumTools.plotRGBCurves(sunCurves)
 #saveCurves(sunCurves, 'sun')
-#showSpectrum(sun, 'sun')
+showSpectrum(sun, 'sun')
 
 #benQ = extractSpectrums(*benQImg)
 #benQCurves = getCurves(benQ)

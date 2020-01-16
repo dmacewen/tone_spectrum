@@ -187,7 +187,6 @@ def getEyeCurveObjects():
     greenEyeCurve = readTracedCurves('eyeSensitivityGreen')
     blueEyeCurve = readTracedCurves('eyeSensitivityBlue')
 
-    #correctedOrientation = invertCurve(regionObject)
     scaledRedEyeCurve = scaleCurve(redEyeCurve)
     scaledGreenEyeCurve = scaleCurve(greenEyeCurve)
     scaledBlueEyeCurve = scaleCurve(blueEyeCurve)
@@ -196,7 +195,7 @@ def getEyeCurveObjects():
     quantizedGreenEyeCurve = quantizeCurve(scaledGreenEyeCurve)
     quantizedBlueEyeCurve = quantizeCurve(scaledBlueEyeCurve)
 
-    smoothedRedEyeCurve  = smoothCurve(quantizedRedEyeCurve)
+    smoothedRedEyeCurve = smoothCurve(quantizedRedEyeCurve)
     smoothedGreenEyeCurve = smoothCurve(quantizedGreenEyeCurve)
     smoothedBlueEyeCurve = smoothCurve(quantizedBlueEyeCurve)
 

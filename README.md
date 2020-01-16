@@ -46,9 +46,9 @@ NOTE: This whole process is not incredibly accurate, but it should give an indic
 
 A few modifications were required to improve the quality of the images captured:
 * Line the spectroscope with felt to reduce internal reflections
-* Add a red filter over the number lines to reduce the brightness of the numbers and reduce any diffraction from the numbers
+* Add a red filter over the number line to reduce the brightness of the numbers and reduce any diffraction from the numbers
 
-The images are captured in a Raw format to prevent any changes being performed before we start processing. 
+The images are captured in a raw format to prevent any changes being performed before we start processing. 
 
 Unprocessed output from the spectroscope:
 <p align="center">
@@ -56,6 +56,34 @@ Unprocessed output from the spectroscope:
 </p>
 
 ### Processing the Spectroscope Capture
+These steps are applied in `imageToSpectrum.py`
+
+1. The raw image is loaded
+2. A crop is automatically applied around the numberline and the light spectrum
+    * This is done by finding the number line using thresholding in the red color channel
+    * Once the numbers are found, we know the spectrum is directly beneath
+3. The color channels are separated out from each other, example shown below
+    * The gradients from top to bottom are Red, Green, Blue
+
+<p align="center">
+    <img src="/readme_resouces/SunRGBSpectralDistributionImage.png">
+</p>
+
+
+4. In the spectrum, each color channel is converted into a set of (x, y) points, with y representing the magnitude of the channel brightness at that location
+    * Each column of pixels in the spectrum sample can be averged to get a sampling for that location 
+5. We can scale the Y-Axis between 0 and 1, and the X-Axis between the starting wavelength and the ending wavelength (taken from numberline)
+    * The results, plotted, look like:
+    * Important Note: This is uncalibrated, raw sensor data plotted. It does not tell us all that much yet
+
+<p align="center">
+    <img src="/readme_resouces/SunRGBSpectralDistribution_uncalibrated.png">
+</p>
+
+6. The curve is then written to a CSV file along with some metadata to be processed by virtualCamera
+
+
+
 
 
 
