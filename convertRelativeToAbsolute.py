@@ -1,5 +1,5 @@
 """
-Tiny scropt to convert a relative path from a chart tracing to an absolute path
+Tiny script to convert a relative path from a chart tracing to an absolute path
     The relative path below is a tracing of the sunlight emission spectrum
 """
 relativePath = [

@@ -1,5 +1,5 @@
 """
-Converts raw images taken through a spectroscope into R, G, and B spectral sensativity curves
+Converts raw images taken through a spectroscope into R, G, and B spectral sensetivity curves
 Intended to be run as a script
 """
 import cv2

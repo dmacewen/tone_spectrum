@@ -31,7 +31,9 @@ SensorSensitivities['humanEye']['curves'] = spectrumTools.getEyeCurveObjects()
 def getSensorSensitivity(measuredSunlightRGBCurvesObjects, groundTruthSunlightCurveObject):
     """
     Returns the calibrated RGB sensor spectral sensetivities
-        Takes RGB spectral sensitivites of a sensor, captured for sunlight and the ground truth sunlight curve.
+        Takes RGB spectral sensitivites of a sensor, captured for sunlight and the ground truth sunlight curve
+        and the ground truth sunlight spectral emission curve
+        
     """
 
     #We have:
@@ -128,7 +130,7 @@ def exposeSurfaceToLight(surface, sensor, incedentLight):
     Virtualizes an exposure using:
         Surface spectral reflectance
         Sensor RGB spectral sensitvity
-        Light source emitted spectrum
+        Light source emission spectrum
     """
 
     reflection = illuminateSurface(incedentLight, surface)
