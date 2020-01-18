@@ -1,5 +1,6 @@
 """
 Use Spectral Emissions, Spectral Reflectance, and Sensor RGB Spectral Sensitivity to virtualize exposing a camera to a surface illuminated by a light source
+  Intended to be run as a script
 """
 from pprint import pprint
 import numpy as np
@@ -7,14 +8,14 @@ import spectrumTools
 import colorSpaceTools
 
 #Measured
-LightSources = {}
-LightSources['LED'] = 'led'
-LightSources['IncandecentA'] = 'incA'
-LightSources['IncandecentB'] = 'incB'
-LightSources['BenQ'] = 'BenQ'
-LightSources['Sky'] = 'Sky'
-LightSources['iPad'] = 'iPad'
-LightSources['Sun'] = 'Sun'
+MeasuredLightSources = {}
+MeasuredLightSources['LED'] = 'led'
+MeasuredLightSources['IncandecentA'] = 'incA'
+MeasuredLightSources['IncandecentB'] = 'incB'
+MeasuredLightSources['BenQ'] = 'BenQ'
+MeasuredLightSources['Sky'] = 'Sky'
+MeasuredLightSources['iPad'] = 'iPad'
+MeasuredLightSources['Sun'] = 'Sun'
 
 #Traced
 Surfaces = {}
@@ -111,18 +112,29 @@ def cleanLABTriplet(lab):
     """Returns Lab values in a list"""
     return list(lab)
 
+measuredSunSpectrum = spectrumTools.getLightSourceCurve(MeasuredLightSources['Sun'])
+measuredLedSpectrum = spectrumTools.getLightSourceCurve(MeasuredLightSources['LED'])
+measuredIncASpectrum = spectrumTools.getLightSourceCurve(MeasuredLightSources['IncandecentA'])
+measuredIPadSpectrum = spectrumTools.getLightSourceCurve(MeasuredLightSources['iPad'])
+
+#Compare different spectral power distributions
+#spectrumTools.plotCurve(measuredSunSpectrum, 'y-', False)
+#spectrumTools.plotCurve(measuredLedSpectrum, 'b-', False)
+#spectrumTools.plotCurve(measuredIncASpectrum, 'r-', False)
+#spectrumTools.plotCurve(measuredIPadSpectrum, 'g-', True)
+
 SensorSensitivities['iphoneX']['curves'] = getSensorSensitivity(spectrumTools.rgbSunCurves, spectrumTools.groundTruthSunlight)
-
-ledSpectrum = spectrumTools.getLightSourceCurve(LightSources['LED'])
-incASpectrum = spectrumTools.getLightSourceCurve(LightSources['IncandecentA'])
-sunSpectrum = spectrumTools.getLightSourceCurve(LightSources['Sun'])
-iPadSpectrum = spectrumTools.getLightSourceCurve(LightSources['iPad'])
-
-SensorSensitivities['iphoneX']['whitePoint'] = recordRGBValues(sunSpectrum, SensorSensitivities['iphoneX']['curves'])
+SensorSensitivities['iphoneX']['whitePoint'] = recordRGBValues(measuredSunSpectrum, SensorSensitivities['iphoneX']['curves'])
 SensorSensitivities['iphoneX']['whiteBalanceMultiplier'] = 1 / (SensorSensitivities['iphoneX']['whitePoint'] / max(SensorSensitivities['iphoneX']['whitePoint']))
 
-SensorSensitivities['humanEye']['whitePoint'] = recordRGBValues(sunSpectrum, SensorSensitivities['humanEye']['curves'])
+SensorSensitivities['humanEye']['whitePoint'] = recordRGBValues(measuredSunSpectrum, SensorSensitivities['humanEye']['curves'])
 SensorSensitivities['humanEye']['whiteBalanceMultiplier'] = 1 / (SensorSensitivities['humanEye']['whitePoint'] / max(SensorSensitivities['humanEye']['whitePoint']))
+
+#Compare iPad screen to human eye sensitivity
+#spectrumTools.plotCurve(measuredIPadSpectrum, 'k-', False)
+#spectrumTools.plotCurve(SensorSensitivities['humanEye']['curves'][0], 'r-', False)
+#spectrumTools.plotCurve(SensorSensitivities['humanEye']['curves'][1], 'g-', False)
+#spectrumTools.plotCurve(SensorSensitivities['humanEye']['curves'][2], 'b-', True)
 
 def exposeSurfaceToLight(surface, sensor, incedentLight):
     """
@@ -144,10 +156,10 @@ def exposeSurfaceToLight(surface, sensor, incedentLight):
 def exposeSurfaceToAllLights(surface, sensor):
     """Helper function to expose the sensor to all all light souces shone on the surface"""
     results = {}
-    results['led'] = exposeSurfaceToLight(ledSpectrum, sensor, surface)
-    results['incA'] = exposeSurfaceToLight(incASpectrum, sensor, surface)
-    results['sun'] = exposeSurfaceToLight(sunSpectrum, sensor, surface)
-    results['iPad'] = exposeSurfaceToLight(iPadSpectrum, sensor, surface)
+    results['led'] = exposeSurfaceToLight(measuredLedSpectrum, sensor, surface)
+    results['incA'] = exposeSurfaceToLight(measuredIncASpectrum, sensor, surface)
+    results['sun'] = exposeSurfaceToLight(measuredSunSpectrum, sensor, surface)
+    results['iPad'] = exposeSurfaceToLight(measuredIPadSpectrum, sensor, surface)
     return results
 
 def calculateDistance(lab1, lab2):
