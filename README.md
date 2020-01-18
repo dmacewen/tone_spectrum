@@ -135,6 +135,7 @@ Now that we can simulate different illuminating different surfaces with differen
 To make it easier to track, well call these values RGB_S1_L1, RGB_S2_L1, RGB_S1_L2, RGB_S2_L2. (S for surface and L for light source)
 
 To compare how similar two colors look we can use a perceptual color space like LAB. In LAB the euclidean distance between two colors should approximately correlate to how different those colors look. 
+
 |RGB|LAB|
 |---|---|
 | RGB_S1_L1 | LAB_S1_L1| 
