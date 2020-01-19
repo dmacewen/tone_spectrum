@@ -1,7 +1,5 @@
 # Exploration into Perception of Color and Metamerism
 
-**WIP: Rough Draft. I will polish it up in the next day or so**
-
 ## Tone Overview
 Tone is a project that aims to address the challenge of getting an accurate foundation makeup match. The current best method for getting accurately matching foundation makeup is to go to a brick and mortar store and try on different shades. Making matters worse, skin tone and skin needs change throughout the year for many people which means the user will often need to go back to the store if their skin changes. 
 
