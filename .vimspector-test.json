@@ -1,0 +1,17 @@
+{
+  "configurations": {
+    "Tone Spectrum: Launch": {
+      "adapter": "vscode-python",
+      "configuration": {
+        "name": "Tone Spectrum: Launch",
+        "type": "python",
+        "request": "launch",
+        "cwd": "${workspaceRoot}",
+        "stopOnEntry": true,
+        "console": "externalTerminal",
+        "debugOptions": [],
+        "program": "${workspaceRoot}/imageToSpectrum.py"
+      }
+    }
+  }
+}
